@@ -26,6 +26,6 @@ particles are used as the basis for new proposals using
 \code{propose.theta}.
 }
 \seealso{
-\code{\link{PMC.sampler}}, \code{\link{has.suport}}
+\code{\link{PMC.sampler}}, \code{\link{has.support}}
 }
 

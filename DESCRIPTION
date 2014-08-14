@@ -14,3 +14,6 @@ Depends:
     Rcpp (>= 0.11.2),
     RcppArmadillo (>= 0.3.820)
 LinkingTo: Rcpp, RcppArmadillo
+Suggests:
+    knitr
+VignetteBuilder: knitr

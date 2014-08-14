@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title></title>
+
+<!-- Styles for R syntax highlighter -->
+<style type="text/css">
+   pre .operator,
+   pre .paren {
+     color: rgb(104, 118, 135)
+   }
+
+   pre .literal {
+     color: #990073
+   }
+
+   pre .number {
+     color: #099;
+   }
+
+   pre .comment {
+     color: #998;
+     font-style: italic
+   }
+
+   pre .keyword {
+     color: #900;
+     font-weight: bold
+   }
+
+   pre .identifier {
+     color: rgb(0, 0, 0);
+   }
+
+   pre .string {
+     color: #d14;
+   }
+</style>
+
+<!-- R syntax highlighter -->
+<script type="text/javascript">
+var hljs=new function(){function m(p){return p.replace(/&/gm,"&amp;").replace(/</gm,"&lt;")}function f(r,q,p){return RegExp(q,"m"+(r.cI?"i":"")+(p?"g":""))}function b(r){for(var p=0;p<r.childNodes.length;p++){var q=r.childNodes[p];if(q.nodeName=="CODE"){return q}if(!(q.nodeType==3&&q.nodeValue.match(/\s+/))){break}}}function h(t,s){var p="";for(var r=0;r<t.childNodes.length;r++){if(t.childNodes[r].nodeType==3){var q=t.childNodes[r].nodeValue;if(s){q=q.replace(/\n/g,"")}p+=q}else{if(t.childNodes[r].nodeName=="BR"){p+="\n"}else{p+=h(t.childNodes[r])}}}if(/MSIE [678]/.test(navigator.userAgent)){p=p.replace(/\r/g,"\n")}return p}function a(s){var r=s.className.split(/\s+/);r=r.concat(s.parentNode.className.split(/\s+/));for(var q=0;q<r.length;q++){var p=r[q].replace(/^language-/,"");if(e[p]){return p}}}function c(q){var p=[];(function(s,t){for(var r=0;r<s.childNodes.length;r++){if(s.childNodes[r].nodeType==3){t+=s.childNodes[r].nodeValue.length}else{if(s.childNodes[r].nodeName=="BR"){t+=1}else{if(s.childNodes[r].nodeType==1){p.push({event:"start",offset:t,node:s.childNodes[r]});t=arguments.callee(s.childNodes[r],t);p.push({event:"stop",offset:t,node:s.childNodes[r]})}}}}return t})(q,0);return p}function k(y,w,x){var q=0;var z="";var s=[];function u(){if(y.length&&w.length){if(y[0].offset!=w[0].offset){return(y[0].offset<w[0].offset)?y:w}else{return w[0].event=="start"?y:w}}else{return y.length?y:w}}function t(D){var A="<"+D.nodeName.toLowerCase();for(var B=0;B<D.attributes.length;B++){var C=D.attributes[B];A+=" "+C.nodeName.toLowerCase();if(C.value!==undefined&&C.value!==false&&C.value!==null){A+='="'+m(C.value)+'"'}}return A+">"}while(y.length||w.length){var v=u().splice(0,1)[0];z+=m(x.substr(q,v.offset-q));q=v.offset;if(v.event=="start"){z+=t(v.node);s.push(v.node)}else{if(v.event=="stop"){var p,r=s.length;do{r--;p=s[r];z+=("</"+p.nodeName.toLowerCase()+">")}while(p!=v.node);s.splice(r,1);while(r<s.length){z+=t(s[r]);r++}}}}return z+m(x.substr(q))}function j(){function q(x,y,v){if(x.compiled){return}var u;var s=[];if(x.k){x.lR=f(y,x.l||hljs.IR,true);for(var w in x.k){if(!x.k.hasOwnProperty(w)){continue}if(x.k[w] instanceof Object){u=x.k[w]}else{u=x.k;w="keyword"}for(var r in u){if(!u.hasOwnProperty(r)){continue}x.k[r]=[w,u[r]];s.push(r)}}}if(!v){if(x.bWK){x.b="\\b("+s.join("|")+")\\s"}x.bR=f(y,x.b?x.b:"\\B|\\b");if(!x.e&&!x.eW){x.e="\\B|\\b"}if(x.e){x.eR=f(y,x.e)}}if(x.i){x.iR=f(y,x.i)}if(x.r===undefined){x.r=1}if(!x.c){x.c=[]}x.compiled=true;for(var t=0;t<x.c.length;t++){if(x.c[t]=="self"){x.c[t]=x}q(x.c[t],y,false)}if(x.starts){q(x.starts,y,false)}}for(var p in e){if(!e.hasOwnProperty(p)){continue}q(e[p].dM,e[p],true)}}function d(B,C){if(!j.called){j();j.called=true}function q(r,M){for(var L=0;L<M.c.length;L++){if((M.c[L].bR.exec(r)||[null])[0]==r){return M.c[L]}}}function v(L,r){if(D[L].e&&D[L].eR.test(r)){return 1}if(D[L].eW){var M=v(L-1,r);return M?M+1:0}return 0}function w(r,L){return L.i&&L.iR.test(r)}function K(N,O){var M=[];for(var L=0;L<N.c.length;L++){M.push(N.c[L].b)}var r=D.length-1;do{if(D[r].e){M.push(D[r].e)}r--}while(D[r+1].eW);if(N.i){M.push(N.i)}return f(O,M.join("|"),true)}function p(M,L){var N=D[D.length-1];if(!N.t){N.t=K(N,E)}N.t.lastIndex=L;var r=N.t.exec(M);return r?[M.substr(L,r.index-L),r[0],false]:[M.substr(L),"",true]}function z(N,r){var L=E.cI?r[0].toLowerCase():r[0];var M=N.k[L];if(M&&M instanceof Array){return M}return false}function F(L,P){L=m(L);if(!P.k){return L}var r="";var O=0;P.lR.lastIndex=0;var M=P.lR.exec(L);while(M){r+=L.substr(O,M.index-O);var N=z(P,M);if(N){x+=N[1];r+='<span class="'+N[0]+'">'+M[0]+"</span>"}else{r+=M[0]}O=P.lR.lastIndex;M=P.lR.exec(L)}return r+L.substr(O,L.length-O)}function J(L,M){if(M.sL&&e[M.sL]){var r=d(M.sL,L);x+=r.keyword_count;return r.value}else{return F(L,M)}}function I(M,r){var L=M.cN?'<span class="'+M.cN+'">':"";if(M.rB){y+=L;M.buffer=""}else{if(M.eB){y+=m(r)+L;M.buffer=""}else{y+=L;M.buffer=r}}D.push(M);A+=M.r}function G(N,M,Q){var R=D[D.length-1];if(Q){y+=J(R.buffer+N,R);return false}var P=q(M,R);if(P){y+=J(R.buffer+N,R);I(P,M);return P.rB}var L=v(D.length-1,M);if(L){var O=R.cN?"</span>":"";if(R.rE){y+=J(R.buffer+N,R)+O}else{if(R.eE){y+=J(R.buffer+N,R)+O+m(M)}else{y+=J(R.buffer+N+M,R)+O}}while(L>1){O=D[D.length-2].cN?"</span>":"";y+=O;L--;D.length--}var r=D[D.length-1];D.length--;D[D.length-1].buffer="";if(r.starts){I(r.starts,"")}return R.rE}if(w(M,R)){throw"Illegal"}}var E=e[B];var D=[E.dM];var A=0;var x=0;var y="";try{var s,u=0;E.dM.buffer="";do{s=p(C,u);var t=G(s[0],s[1],s[2]);u+=s[0].length;if(!t){u+=s[1].length}}while(!s[2]);if(D.length>1){throw"Illegal"}return{r:A,keyword_count:x,value:y}}catch(H){if(H=="Illegal"){return{r:0,keyword_count:0,value:m(C)}}else{throw H}}}function g(t){var p={keyword_count:0,r:0,value:m(t)};var r=p;for(var q in e){if(!e.hasOwnProperty(q)){continue}var s=d(q,t);s.language=q;if(s.keyword_count+s.r>r.keyword_count+r.r){r=s}if(s.keyword_count+s.r>p.keyword_count+p.r){r=p;p=s}}if(r.language){p.second_best=r}return p}function i(r,q,p){if(q){r=r.replace(/^((<[^>]+>|\t)+)/gm,function(t,w,v,u){return w.replace(/\t/g,q)})}if(p){r=r.replace(/\n/g,"<br>")}return r}function n(t,w,r){var x=h(t,r);var v=a(t);var y,s;if(v){y=d(v,x)}else{return}var q=c(t);if(q.length){s=document.createElement("pre");s.innerHTML=y.value;y.value=k(q,c(s),x)}y.value=i(y.value,w,r);var u=t.className;if(!u.match("(\\s|^)(language-)?"+v+"(\\s|$)")){u=u?(u+" "+v):v}if(/MSIE [678]/.test(navigator.userAgent)&&t.tagName=="CODE"&&t.parentNode.tagName=="PRE"){s=t.parentNode;var p=document.createElement("div");p.innerHTML="<pre><code>"+y.value+"</code></pre>";t=p.firstChild.firstChild;p.firstChild.cN=s.cN;s.parentNode.replaceChild(p.firstChild,s)}else{t.innerHTML=y.value}t.className=u;t.result={language:v,kw:y.keyword_count,re:y.r};if(y.second_best){t.second_best={language:y.second_best.language,kw:y.second_best.keyword_count,re:y.second_best.r}}}function o(){if(o.called){return}o.called=true;var r=document.getElementsByTagName("pre");for(var p=0;p<r.length;p++){var q=b(r[p]);if(q){n(q,hljs.tabReplace)}}}function l(){if(window.addEventListener){window.addEventListener("DOMContentLoaded",o,false);window.addEventListener("load",o,false)}else{if(window.attachEvent){window.attachEvent("onload",o)}else{window.onload=o}}}var e={};this.LANGUAGES=e;this.highlight=d;this.highlightAuto=g;this.fixMarkup=i;this.highlightBlock=n;this.initHighlighting=o;this.initHighlightingOnLoad=l;this.IR="[a-zA-Z][a-zA-Z0-9_]*";this.UIR="[a-zA-Z_][a-zA-Z0-9_]*";this.NR="\\b\\d+(\\.\\d+)?";this.CNR="\\b(0[xX][a-fA-F0-9]+|(\\d+(\\.\\d*)?|\\.\\d+)([eE][-+]?\\d+)?)";this.BNR="\\b(0b[01]+)";this.RSR="!|!=|!==|%|%=|&|&&|&=|\\*|\\*=|\\+|\\+=|,|\\.|-|-=|/|/=|:|;|<|<<|<<=|<=|=|==|===|>|>=|>>|>>=|>>>|>>>=|\\?|\\[|\\{|\\(|\\^|\\^=|\\||\\|=|\\|\\||~";this.ER="(?![\\s\\S])";this.BE={b:"\\\\.",r:0};this.ASM={cN:"string",b:"'",e:"'",i:"\\n",c:[this.BE],r:0};this.QSM={cN:"string",b:'"',e:'"',i:"\\n",c:[this.BE],r:0};this.CLCM={cN:"comment",b:"//",e:"$"};this.CBLCLM={cN:"comment",b:"/\\*",e:"\\*/"};this.HCM={cN:"comment",b:"#",e:"$"};this.NM={cN:"number",b:this.NR,r:0};this.CNM={cN:"number",b:this.CNR,r:0};this.BNM={cN:"number",b:this.BNR,r:0};this.inherit=function(r,s){var p={};for(var q in r){p[q]=r[q]}if(s){for(var q in s){p[q]=s[q]}}return p}}();hljs.LANGUAGES.cpp=function(){var a={keyword:{"false":1,"int":1,"float":1,"while":1,"private":1,"char":1,"catch":1,"export":1,virtual:1,operator:2,sizeof:2,dynamic_cast:2,typedef:2,const_cast:2,"const":1,struct:1,"for":1,static_cast:2,union:1,namespace:1,unsigned:1,"long":1,"throw":1,"volatile":2,"static":1,"protected":1,bool:1,template:1,mutable:1,"if":1,"public":1,friend:2,"do":1,"return":1,"goto":1,auto:1,"void":2,"enum":1,"else":1,"break":1,"new":1,extern:1,using:1,"true":1,"class":1,asm:1,"case":1,typeid:1,"short":1,reinterpret_cast:2,"default":1,"double":1,register:1,explicit:1,signed:1,typename:1,"try":1,"this":1,"switch":1,"continue":1,wchar_t:1,inline:1,"delete":1,alignof:1,char16_t:1,char32_t:1,constexpr:1,decltype:1,noexcept:1,nullptr:1,static_assert:1,thread_local:1,restrict:1,_Bool:1,complex:1},built_in:{std:1,string:1,cin:1,cout:1,cerr:1,clog:1,stringstream:1,istringstream:1,ostringstream:1,auto_ptr:1,deque:1,list:1,queue:1,stack:1,vector:1,map:1,set:1,bitset:1,multiset:1,multimap:1,unordered_set:1,unordered_map:1,unordered_multiset:1,unordered_multimap:1,array:1,shared_ptr:1}};return{dM:{k:a,i:"</",c:[hljs.CLCM,hljs.CBLCLM,hljs.QSM,{cN:"string",b:"'\\\\?.",e:"'",i:"."},{cN:"number",b:"\\b(\\d+(\\.\\d*)?|\\.\\d+)(u|U|l|L|ul|UL|f|F)"},hljs.CNM,{cN:"preprocessor",b:"#",e:"$"},{cN:"stl_container",b:"\\b(deque|list|queue|stack|vector|map|set|bitset|multiset|multimap|unordered_map|unordered_set|unordered_multiset|unordered_multimap|array)\\s*<",e:">",k:a,r:10,c:["self"]}]}}}();hljs.LANGUAGES.r={dM:{c:[hljs.HCM,{cN:"number",b:"\\b0[xX][0-9a-fA-F]+[Li]?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+(?:[eE][+\\-]?\\d*)?L\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\b\\d+\\.(?!\\d)(?:i\\b)?",e:hljs.IMMEDIATE_RE,r:1},{cN:"number",b:"\\b\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"number",b:"\\.\\d+(?:[eE][+\\-]?\\d*)?i?\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"keyword",b:"(?:tryCatch|library|setGeneric|setGroupGeneric)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\.",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\.\\.\\d+(?![\\w.])",e:hljs.IMMEDIATE_RE,r:10},{cN:"keyword",b:"\\b(?:function)",e:hljs.IMMEDIATE_RE,r:2},{cN:"keyword",b:"(?:if|in|break|next|repeat|else|for|return|switch|while|try|stop|warning|require|attach|detach|source|setMethod|setClass)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"literal",b:"(?:NA|NA_integer_|NA_real_|NA_character_|NA_complex_)\\b",e:hljs.IMMEDIATE_RE,r:10},{cN:"literal",b:"(?:NULL|TRUE|FALSE|T|F|Inf|NaN)\\b",e:hljs.IMMEDIATE_RE,r:1},{cN:"identifier",b:"[a-zA-Z.][a-zA-Z0-9._]*\\b",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"<\\-(?!\\s*\\d)",e:hljs.IMMEDIATE_RE,r:2},{cN:"operator",b:"\\->|<\\-",e:hljs.IMMEDIATE_RE,r:1},{cN:"operator",b:"%%|~",e:hljs.IMMEDIATE_RE},{cN:"operator",b:">=|<=|==|!=|\\|\\||&&|=|\\+|\\-|\\*|/|\\^|>|<|!|&|\\||\\$|:",e:hljs.IMMEDIATE_RE,r:0},{cN:"operator",b:"%",e:"%",i:"\\n",r:1},{cN:"identifier",b:"`",e:"`",r:0},{cN:"string",b:'"',e:'"',c:[hljs.BE],r:0},{cN:"string",b:"'",e:"'",c:[hljs.BE],r:0},{cN:"paren",b:"[[({\\])}]",e:hljs.IMMEDIATE_RE,r:0}]}};
+hljs.initHighlightingOnLoad();
+</script>
+
+
+
+<style type="text/css">
+body, td {
+   font-family: sans-serif;
+   background-color: white;
+   font-size: 13px;
+}
+
+body {
+  max-width: 800px;
+  margin: auto;
+  padding: 1em;
+  line-height: 20px;
+}
+
+tt, code, pre {
+   font-family: 'DejaVu Sans Mono', 'Droid Sans Mono', 'Lucida Console', Consolas, Monaco, monospace;
+}
+
+h1 {
+   font-size:2.2em;
+}
+
+h2 {
+   font-size:1.8em;
+}
+
+h3 {
+   font-size:1.4em;
+}
+
+h4 {
+   font-size:1.0em;
+}
+
+h5 {
+   font-size:0.9em;
+}
+
+h6 {
+   font-size:0.8em;
+}
+
+a:visited {
+   color: rgb(50%, 0%, 50%);
+}
+
+pre, img {
+  max-width: 100%;
+}
+
+pre code {
+   display: block; padding: 0.5em;
+}
+
+code {
+  font-size: 92%;
+  border: 1px solid #ccc;
+}
+
+code[class] {
+  background-color: #F8F8F8;
+}
+
+table, td, th {
+  border: none;
+}
+
+blockquote {
+   color:#666666;
+   margin:0;
+   padding-left: 1em;
+   border-left: 0.5em #EEE solid;
+}
+
+hr {
+   height: 0px;
+   border-bottom: none;
+   border-top-width: thin;
+   border-top-style: dotted;
+   border-top-color: #999999;
+}
+
+@media print {
+   * {
+      background: transparent !important;
+      color: black !important;
+      filter:none !important;
+      -ms-filter: none !important;
+   }
+
+   body {
+      font-size:12pt;
+      max-width:100%;
+   }
+
+   a, a:visited {
+      text-decoration: underline;
+   }
+
+   hr {
+      visibility: hidden;
+      page-break-before: always;
+   }
+
+   pre, blockquote {
+      padding-right: 1em;
+      page-break-inside: avoid;
+   }
+
+   tr, img {
+      page-break-inside: avoid;
+   }
+
+   img {
+      max-width: 100% !important;
+   }
+
+   @page :left {
+      margin: 15mm 20mm 15mm 10mm;
+   }
+
+   @page :right {
+      margin: 15mm 10mm 15mm 20mm;
+   }
+
+   p, h2, h3 {
+      orphans: 3; widows: 3;
+   }
+
+   h2, h3 {
+      page-break-after: avoid;
+   }
+}
+</style>
+
+
+
+</head>
+
+<body>
+<p>FoxSim is an <strong>R</strong> package for simulating an invading fox population. The simulation model is based on a cellular automata over a spatial map (raster) with cells of a given resolution.  The model is designed to be fitted to observations using Approximate Bayesian Computational methods and the package includes a sequential Monte Carlo sampler to undertake the ABC computations.  Currently the model is set up to simulate an invading fox population in Tasmania using a habitat raster with 3 km cell resolution.  Habitat cells are coded as (1) - suitable habitat, (0) - unsuitable habitat or (-1) - water (ocean).</p>
+
+<p>The package includes observations of fox carcasses either killed on roads (3) or shot by hunters (1) and &#39;FoxSim&#39; currently simulates both road killed and hunter killed foxes to facilitate comparison with observed carcasses via ABC estimation</p>
+
+<p>The following presents a minimal guide to getting the model up and running.</p>
+
+<p>The latest version of <code>FoxSim</code> is available from <strong>GitHub</strong> and in order to install it as an <strong>R</strong> package, it needs to be built from source.   Building source packages requires two packages to be installed to give <strong>R</strong> access to the required toolchain including a suitable C++ compiler.</p>
+
+<p>First, download and install <strong>Rtools</strong> from <a href="http://cran.r-project.org/bin/windows/Rtools">http://cran.r-project.org/bin/windows/Rtools</a></p>
+
+<p>Then install <code>devtools</code> (from CRAN).  Once <strong>Rtools</strong> and <code>devtools</code> has been installed run the following commands.</p>
+
+<p><code>library(devtools)</code><br/>
+<code>install_gitub(&quot;dslramsey/foxsim&quot;)</code></p>
+
+<p>assuming the package builds OK, you should be good to go. Now load the <code>FoxSim</code> package and read in the fox habitat and road maps for Tasmania.</p>
+
+<pre><code class="r">library(FoxSim, quietly=T)
+data(habitatvec)
+data(roadvec)
+</code></pre>
+
+<p>Both <code>habitatvec</code> and <code>roadvec</code> are Vector objects but each contain an attribute <code>dims</code> containing the dimensions of the original raster matrix from which they were created.  This can be accessed by</p>
+
+<pre><code class="r">nd&lt;- attributes(habitatvec)$dims
+nd
+</code></pre>
+
+<pre><code>## [1] 114 106
+</code></pre>
+
+<p>which shows the original raster had dimensions of 114 rows and 106 columns.  Now read in the carcass observations.</p>
+
+<pre><code class="r">data(carcass_obs)
+carcass_obs
+</code></pre>
+
+<pre><code>## $xr
+##  [1] 0 0 1 0 1 1 0 0 0 0 0 0 0 0
+## 
+## $xs
+##  [1] 1 0 0 0 0 0 0 0 0 0 0 0 0 0
+</code></pre>
+
+<p>Here the vector <code>xr</code> contains the number of road killed foxes discovered each year starting from 2001 and ending in 2014 (a little presumptuous as 2014 is only a little more than half over) and <code>xs</code> contains the number of hunter killed carcasses over the same period.</p>
+
+<p>To run the <code>foxsim</code> cellular automata model we must also specifiy two dispersal kernels.  These are used to define two possible dispersal modes and are randomly selected from in the model with equal probability.  Here we will specifiy both a <strong>local</strong> and <strong>vagrant</strong> dispersal modes with a maximum dispersal distance of 30 km.  These are then place in a list for input into <code>foxsim</code>.</p>
+
+<p><code>TODO</code> modify C++ code to take arbitrary number of dispersal kernels</p>
+
+<pre><code class="r"># local neighbourhood dispersal kernel
+kern1&lt;- kernel2D(eps=3, kfun=&quot;gamma&quot;, shape=1, scale=3, max.disp=30)
+
+# Vagrant (searching) dispersal kernel. equal dispersal probability  
+# in all directions out to 30 km.
+kern2&lt;- kernel2D(eps=3, kfun=&quot;circle&quot;, sigma=30, max.disp=30)
+
+kern&lt;- list(kern1, kern2)
+
+kdim&lt;- dim(kern1)[1] # save dimensions of kernel
+</code></pre>
+
+<p>We can visualise these kernels using the following </p>
+
+<pre><code class="r">par(mfrow=c(1,2),pty=&quot;s&quot;)
+x&lt;- y&lt;- seq(-30, 30, 3)
+image(x, y, kern1, col=terrain.colors(50),main=&quot;local dispersal kernel&quot;)
+image(x, y, kern2, col=terrain.colors(50),main=&quot;vagrant dispersal kernel&quot;)
+</code></pre>
+
+<p><img src="data:image/png;base64,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" alt="plot of chunk unnamed-chunk-5"/> </p>
+
+<p>Finally, we require some introduction points for foxes in the model to begin the invasion process.  The rumoured introductions were said to have occurred at Longford, Oatlands and St Helens.   We will introduce foxes simultaneously at these 3 points and allow for some uncertainty in the actual release locations by randomly selecting a habitat cell within 20 km of each of these locations to use as the release cell.  Cells satisfying these conditions are available in the data file <code>incpoints</code></p>
+
+<pre><code class="r">data(incpoints)
+incpoints
+</code></pre>
+
+<pre><code>## [[1]]
+##   [1] 7675 7676 7677 7678 7787 7788 7789 7790 7791 7792 7793 7794 7900 7901
+##  [15] 7902 7903 7904 7905 7906 7907 7908 7909 8013 8014 8015 8016 8017 8018
+##  [29] 8019 8020 8021 8022 8023 8126 8127 8128 8129 8130 8131 8132 8133 8134
+##  [43] 8135 8136 8137 8138 8240 8241 8242 8243 8244 8245 8246 8247 8248 8249
+##  [57] 8250 8251 8252 8354 8355 8356 8357 8358 8359 8360 8361 8362 8363 8364
+##  [71] 8365 8366 8468 8469 8470 8471 8472 8473 8474 8475 8476 8477 8478 8479
+##  [85] 8480 8582 8583 8584 8585 8586 8587 8588 8589 8590 8591 8592 8593 8594
+##  [99] 8697 8698 8699 8700 8701 8702 8703 8704 8705 8706 8707 8708 8811 8812
+## [113] 8813 8814 8815 8816 8817 8818 8819 8820 8821 8926 8927 8928 8929 8930
+## [127] 8931 8932 8933 8934 9041 9042 9043 9044 9045 9046 9047 9158
+## 
+## [[2]]
+##   [1] 8039 8040 8041 8042 8043 8044 8151 8152 8153 8154 8155 8157 8158 8159
+##  [15] 8264 8265 8266 8267 8268 8272 8273 8274 8379 8380 8381 8382 8383 8384
+##  [29] 8385 8386 8387 8388 8389 8491 8492 8493 8494 8496 8497 8498 8499 8500
+##  [43] 8501 8502 8503 8605 8606 8607 8608 8609 8610 8611 8612 8613 8614 8615
+##  [57] 8616 8617 8719 8720 8721 8722 8723 8724 8725 8726 8727 8728 8729 8730
+##  [71] 8731 8833 8834 8835 8836 8837 8838 8839 8840 8841 8842 8843 8844 8845
+##  [85] 8947 8948 8949 8950 8951 8952 8953 8954 8955 8956 8957 8958 8959 9062
+##  [99] 9063 9064 9065 9066 9067 9068 9069 9070 9071 9072 9073 9176 9177 9178
+## [113] 9179 9180 9181 9182 9183 9184 9185 9186 9291 9292 9293 9294 9295 9296
+## [127] 9297 9298 9299 9407 9408 9409 9410 9411 9412
+## 
+## [[3]]
+##  [1] 10970 10971 10972 11083 11084 11198 11199 11309 11312 11320 11423
+## [12] 11427 11428 11433 11536 11541 11542 11543 11544 11546 11547 11655
+## [23] 11656 11657 11658 11660 11661 11662 11663 11764 11765 11770 11771
+## [34] 11772 11773 11774 11775 11777 11882 11883 11884 11885 11997
+</code></pre>
+
+<p>which is a list of length 3 containing a vector of cell numbers within 20k of each location.  The <code>foxsim</code> model will randomly select one of these cells from each of the three locations to use as the release point for foxes.</p>
+
+<p>Now we are almost ready to run the model.  The final requirements of the <code>foxsim</code> model are some parameters governing the population and obervation processes as well as start and end times. These need to be supplied in a <code>list</code> with specific name attributes and we will construct some dummy parameters here to illustrate.</p>
+
+<pre><code class="r">Parms&lt;- list(syear=1998,eyear=2013,psurv=0.7,Ryear=1.1,proad=0.2,pshot=0.1)
+
+# Now do a single run of the model
+
+foxsim(nd[1], nd[2], kdim, habitatvec, roadvec, incpoints, kern, Parms)
+</code></pre>
+
+<pre><code>## [[1]]
+##  [1]  1  0  1  0  2  1  2  4  6 12 16 20 29 37 31 33
+## 
+## [[2]]
+##  [1]  0  0  0  3  0  1  3  4  5 12 15 16 23 22 34 34
+## 
+## [[3]]
+##  [1]   4   7   9  12  16  23  48  79 119 168 241 323 413 477 589 690
+</code></pre>
+
+<p><code>foxsim</code> produces a list containing 3 vectors of length <code>length(syear:eyear)</code>.  The first element of the list contains the number of road killed fox carcasses each year predicted by the model.  The second element contains the predicted hunter killed carcasses each year and the third contains the predicted number of occupied cells each year.</p>
+
+<p><code>TODO</code>  change C++ code to give the list elements names attributes.</p>
+
+<p>While this is all well and good, what we would really like to do is obtain estimates of the parameters in <code>Parms</code> by fitting the model to the observed fox carcass data.  We will use a sequential Monte Carlo (SMC) algorithm to fit the model by matching simulated fox carcass predictions with the observed carcass data within an ABC framework.</p>
+
+<p>The SMC algorithm is contained in the function <code>PMC.sampler</code> (for population Monte Carlo).  Its required arguments are <code>N</code> the number of particles to estimate, where an individual particle refers to a vector of parameters e.g. <code>Parms</code>, <code>x0</code> which is the list of observation vectors, <code>SeqTol</code> is a vector containing the decreasing list of tolerance values used for ABC matching, <code>priors</code> is a list of specifications for the prior distributions of the parameters and <code>Data</code> is a list containing the other fixed data that is required by <code>foxsim</code>.</p>
+
+<p>First we construct the fixed data.  This contains all the info required by <code>foxsim</code> in a list and can be constructed directly</p>
+
+<pre><code class="r">MyData&lt;- list(nr=nd[1],nc=nd[2],kdim=kdim, hab.vec=habitatvec, road.vec=roadvec,  
+              ipoints=incpoints, kern.list=kern, eyear=2014)
+</code></pre>
+
+<p>Since the end year of the observations is fixed at 2014, we place it in <code>MyData</code> as it is not a parameter to be estimated.  However the fox introduction year <code>syear</code> is unknown and is allowed to be estimated by the model.  Here we allow <code>syear</code> to take values between 1995 and 2001.</p>
+
+<p>We now need some prior distributions for the parameters in the model.  These are listed in the order introduction year <code>syear</code>, cell survival <code>psurv</code>, road kill probability <code>proad</code>, hunter kill probability <code>pshot</code> and cell reproductive rate <code>Ryear</code>.</p>
+
+<pre><code class="r">priors&lt;- list(list(&quot;uniform&quot;,-3.49,3.49),
+              list(&quot;beta&quot;,1,1),
+              list(&quot;beta&quot;,17,83),
+              list(&quot;beta&quot;,17,83),
+              list(&quot;uniform&quot;,0.1,2))
+</code></pre>
+
+<p>Here we transform the prior for <code>syear</code> to be a number on the real line between -3.49, 3.49 with 0 corresponding to the year 1998.  This facilitates easier sampling by the SMC algorithm with any value proposed by the model, say <code>val</code>, transformed into the integer number for <code>syear</code> using <code>round(val + 1998)</code>.</p>
+
+<p>Finally we can now do some SMC updating by specifying some tolerances and running the following commands</p>
+
+<pre><code class="r">Tol&lt;- c(5,4)
+
+fit&lt;- PMC.sampler(N=10, carcass_obs, Tol, priors, MyData, parallel=F)
+</code></pre>
+
+<pre><code>## completed particle  1  for seq  5 
+## completed particle  2  for seq  5 
+## completed particle  3  for seq  5 
+## completed particle  4  for seq  5 
+## completed particle  5  for seq  5 
+## completed particle  6  for seq  5 
+## completed particle  7  for seq  5 
+## completed particle  8  for seq  5 
+## completed particle  9  for seq  5 
+## completed particle  10  for seq  5 
+## Completed particles for tol  5 
+## Time elapsed: 0 hours 0 mins 57 secs 
+## completed particle  1  for seq  4 
+## completed particle  2  for seq  4 
+## completed particle  3  for seq  4 
+## completed particle  4  for seq  4 
+## completed particle  5  for seq  4 
+## completed particle  6  for seq  4 
+## completed particle  7  for seq  4 
+## completed particle  8  for seq  4 
+## completed particle  9  for seq  4 
+## completed particle  10  for seq  4 
+## Completed current tolerance  4 
+## Time elapsed: 0 hours 0 mins 10 secs
+</code></pre>
+
+<pre><code class="r">theta&lt;- fit$Tol4$theta  # parameter estimates for final tolerance
+theta[,1]&lt;- round(theta[1] + 1998) # transform syear to integer year of intro.
+theta
+</code></pre>
+
+<pre><code>##       [,1]    [,2]   [,3]    [,4]   [,5]
+##  [1,] 2000 0.09639 0.2002 0.14620 0.9356
+##  [2,] 2000 0.19852 0.1805 0.15823 0.7377
+##  [3,] 2000 0.50767 0.1569 0.17728 0.3230
+##  [4,] 2000 0.51044 0.1836 0.15715 0.7203
+##  [5,] 2000 0.21591 0.1845 0.15304 0.4716
+##  [6,] 2000 0.41854 0.1458 0.17005 0.5453
+##  [7,] 2000 0.51858 0.1475 0.10641 0.1244
+##  [8,] 2000 0.12732 0.1698 0.16554 0.9121
+##  [9,] 2000 0.25588 0.1735 0.11923 1.0050
+## [10,] 2000 0.34117 0.1555 0.08312 0.2807
+</code></pre>
+
+</body>
+
+</html>

@@ -496,7 +496,7 @@ has.support <- function(parm, prior) {
 #' @return Vector of proposed parameters the same length as
 #' \code{theta} 
 #' 
-#' @seealso \code{\link{PMC.sampler}}, \code{\link{has.suport}}
+#' @seealso \code{\link{PMC.sampler}}, \code{\link{has.support}}
 #' @export
 propose.theta<- function(theta, vcov, priors) {
   # multivariate normal proposals using Cholsky
@@ -526,7 +526,7 @@ propose.theta<- function(theta, vcov, priors) {
 #' @return Vector of proposed parameters the same length as
 #' \code{theta} 
 #' 
-#' @seealso \code{\link{PMC.sampler}}, \code{\link{has.suport}}
+#' @seealso \code{\link{PMC.sampler}}, \code{\link{has.support}}
 #' @export
 pick.particle <- function(param, w) {
   weight_cum = cumsum(w/sum(w))
