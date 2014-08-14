@@ -3,7 +3,9 @@
 \alias{habitatvec}
 \title{Fox habitat suitability map of Tasmania.}
 \format{A vector of size 12084 created from a raster file
-by calling \code{as.double(as.matrix(raster))}}
+by calling \code{as.double(as.matrix(raster))}\cr
+The dimensions of the original raster are stored in the
+\code{dims} attibute (accessed by \code{attributes(habitatvec)}}
 \description{
 A vector representing fox habitat suitability on a 3 km
 raster suitable for input into \code{foxsim}.  Cell values

@@ -48,8 +48,8 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=F, ncores=NULL, log
     xx<- sapply(1:N, ABC.reject, x0, SeqTol[1], priors, Data)
   
     theta<- do.call('rbind',xx[1,])
-    xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$end.year-2001)):length(x)])) #from 2001:end.year
-    xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$end.year-2001)):length(x)])) #from 2001:end.year
+    xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+    xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
     pop<- xx[4,]
   
     duration = difftime(Sys.time(), start, units = "secs")
@@ -78,8 +78,8 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=F, ncores=NULL, log
         xx<- sapply(1:N, ABC.weighted, thetaold, x0, SeqTol[j], VarCov, wold, priors, Data)
       
       theta<- do.call('rbind',xx[1,])
-      xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$end.year-2001)):length(x)])) #from 2001:end.year
-      xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$end.year-2001)):length(x)])) #from 2001:end.year
+      xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+      xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
       pop<- xx[4,]
       
       w<- calc.weights(theta, thetaold, wold, VarCov, priors)
@@ -148,8 +148,8 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=F, ncores=NULL
       xx<- sapply(1:N, ABC.weighted, thetaold, x0, SeqTol[j], VarCov, wold, priors, Data)
     
     theta<- do.call('rbind',xx[1,])
-    xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$end.year-2001)):length(x)]))
-    xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$end.year-2001)):length(x)]))
+    xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
+    xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
     pop<- xx[4,]
     
     w<- calc.weights(theta, thetaold, wold, VarCov, priors)
@@ -238,7 +238,7 @@ PMC.append<- function(x, TolName) {
 ModelABC<- function(parm, Data) {
 # Called by PMC.sampler  
   syear<- round(parm[1] + 1998)
-  eyear<- Data$end.year 
+  eyear<- Data$eyear 
   Parms<- list(syear=syear,eyear=eyear,psurv=parm[2],proad=parm[3],pshot=parm[4],Ryear=parm[5])
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)

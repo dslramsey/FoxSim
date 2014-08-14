@@ -8,7 +8,9 @@
 #' 
 #' 
 #' @format A vector of size 12084 created from a raster file
-#' by calling \code{as.double(as.matrix(raster))}
+#' by calling \code{as.double(as.matrix(raster))}\cr
+#' The dimensions of the original raster are stored in the 
+#' \code{dims} attibute (accessed by \code{attributes(habitatvec)}
 #' @name habitatvec
 NULL
 #------------------------------------------------------------
@@ -20,7 +22,9 @@ NULL
 #' 
 #' 
 #' @format A vector of size 12084 created from a raster file
-#' by calling \code{as.double(as.matrix(raster))}
+#' by calling \code{as.double(as.matrix(raster))}\cr
+#' The dimensions of the original raster are stored in the 
+#' \code{dims} attibute (accessed by \code{attributes(roadvec)}
 #' @name roadvec
 NULL
 #-------------------------------------------------------------
@@ -35,4 +39,18 @@ NULL
 #' a vector of cell numbers representing possible introduction
 #' points.
 #' @name incpoints
+NULL
+#-------------------------------------------------------------
+#' Fox carcass discoveries in Tasmania.
+#'
+#' A list of length 2 representing the number of fox carcasses
+#' discovered in Tasmania since 2001 either through road kills
+#' or hunter kills.  
+#' 
+#' @format A list of length 2 with the following elements\cr
+#' xr - number of road killed carcasses each year.\cr 
+#' xs - number of hunter killed carcasses each year.\cr
+#' Years are numbered from 2001.
+#' 
+#' @name carcass_obs
 NULL
