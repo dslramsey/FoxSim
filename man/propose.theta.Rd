@@ -24,6 +24,6 @@ normal distribution.  Multivariate normal proposals are
 implemented using a Cholsky decomposition of \code{vcov}.
 }
 \seealso{
-\code{\link{PMC.sampler}}, \code{\link{has.suport}}
+\code{\link{PMC.sampler}}, \code{\link{has.support}}
 }
 
