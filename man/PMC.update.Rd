@@ -3,8 +3,8 @@
 \alias{PMC.update}
 \title{Sequential Population Monte Carlo Sampler - Updater}
 \usage{
-PMC.update(post, N, x0, SeqTol, priors, Data, parallel = F, ncores = NULL,
-  logfile = NULL, save.post = NULL)
+PMC.update(post, N, x0, SeqTol, priors, Data, parallel = FALSE,
+  ncores = NULL, logfile = NULL, save.post = NULL)
 }
 \arguments{
 \item{post}{output from a single tolerance from \code{PMS.sampler}}

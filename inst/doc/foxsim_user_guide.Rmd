@@ -1,10 +1,12 @@
 %\VignetteEngine{knitr::knitr}
 %\VignetteIndexEntry{foxsim_users_guide}
----
-title: "FoxSim users guide"
-author: "Dave Ramsey"
-output: pdf_document
----
+
+
+# FoxSim users guide
+
+## Dave Ramsey
+### Friday, August 15, 2014
+-------------------------------------------
 
 FoxSim is an **R** package for simulating an invading fox population. The simulation model is based on a cellular automata over a spatial map (raster) with cells of a given resolution.  The model is designed to be fitted to observations using Approximate Bayesian Computational methods and the package includes a sequential Monte Carlo sampler to undertake the ABC computations.  Currently the model is set up to simulate an invading fox population in Tasmania using a habitat raster with 3 km cell resolution.  Habitat cells are coded as (1) - suitable habitat, (0) - unsuitable habitat or (-1) - water (ocean).
 
@@ -55,7 +57,7 @@ kern1<- kernel2D(eps=3, kfun="gamma", shape=1, scale=3, max.disp=30)
 
 # Vagrant (searching) dispersal kernel. equal dispersal probability  
 # in all directions out to 30 km.
-kern2<- kernel2D(eps=3, kfun="circle", sigma=30, max.disp=30)
+kern2<- kernel2D(eps=3, kfun="uniform", sigma=30, max.disp=30)
 
 kern<- list(kern1, kern2)
 
@@ -126,7 +128,7 @@ Here we transform the prior for `syear` to be a number on the real line between 
 
 Finally we can now do some SMC updating by specifying some tolerances and running the following commands
 
-```{r}
+```{r,cache=TRUE}
 Tol<- c(5,4)
 
 fit<- PMC.sampler(N=10, carcass_obs, Tol, priors, MyData, parallel=F)

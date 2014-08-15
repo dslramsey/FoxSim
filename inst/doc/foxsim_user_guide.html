@@ -3,7 +3,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
 
-<title></title>
+<title>FoxSim users guide</title>
 
 <!-- Styles for R syntax highlighter -->
 <style type="text/css">
@@ -187,6 +187,14 @@ hr {
 </head>
 
 <body>
+<h1>FoxSim users guide</h1>
+
+<h2>Dave Ramsey</h2>
+
+<h3>Friday, August 15, 2014</h3>
+
+<hr/>
+
 <p>FoxSim is an <strong>R</strong> package for simulating an invading fox population. The simulation model is based on a cellular automata over a spatial map (raster) with cells of a given resolution.  The model is designed to be fitted to observations using Approximate Bayesian Computational methods and the package includes a sequential Monte Carlo sampler to undertake the ABC computations.  Currently the model is set up to simulate an invading fox population in Tasmania using a habitat raster with 3 km cell resolution.  Habitat cells are coded as (1) - suitable habitat, (0) - unsuitable habitat or (-1) - water (ocean).</p>
 
 <p>The package includes observations of fox carcasses either killed on roads (3) or shot by hunters (1) and &#39;FoxSim&#39; currently simulates both road killed and hunter killed foxes to facilitate comparison with observed carcasses via ABC estimation</p>
@@ -242,7 +250,7 @@ kern1&lt;- kernel2D(eps=3, kfun=&quot;gamma&quot;, shape=1, scale=3, max.disp=30
 
 # Vagrant (searching) dispersal kernel. equal dispersal probability  
 # in all directions out to 30 km.
-kern2&lt;- kernel2D(eps=3, kfun=&quot;circle&quot;, sigma=30, max.disp=30)
+kern2&lt;- kernel2D(eps=3, kfun=&quot;uniform&quot;, sigma=30, max.disp=30)
 
 kern&lt;- list(kern1, kern2)
 
@@ -308,13 +316,13 @@ foxsim(nd[1], nd[2], kdim, habitatvec, roadvec, incpoints, kern, Parms)
 </code></pre>
 
 <pre><code>## [[1]]
-##  [1]  1  0  1  0  2  1  2  4  6 12 16 20 29 37 31 33
+##  [1]  0  0  1  2  1  5  2  5  3  4  6 11  7 14 17 13
 ## 
 ## [[2]]
-##  [1]  0  0  0  3  0  1  3  4  5 12 15 16 23 22 34 34
+##  [1]  0  0  0  1  3  2  2  7  7  7  8 14 10  9 16 14
 ## 
 ## [[3]]
-##  [1]   4   7   9  12  16  23  48  79 119 168 241 323 413 477 589 690
+##  [1]   6   8  11  25  39  54  74  99 132 172 192 230 252 285 330 363
 </code></pre>
 
 <p><code>foxsim</code> produces a list containing 3 vectors of length <code>length(syear:eyear)</code>.  The first element of the list contains the number of road killed fox carcasses each year predicted by the model.  The second element contains the predicted hunter killed carcasses each year and the third contains the predicted number of occupied cells each year.</p>
@@ -362,7 +370,7 @@ fit&lt;- PMC.sampler(N=10, carcass_obs, Tol, priors, MyData, parallel=F)
 ## completed particle  9  for seq  5 
 ## completed particle  10  for seq  5 
 ## Completed particles for tol  5 
-## Time elapsed: 0 hours 0 mins 57 secs 
+## Time elapsed: 0 hours 0 mins 54 secs 
 ## completed particle  1  for seq  4 
 ## completed particle  2  for seq  4 
 ## completed particle  3  for seq  4 
@@ -374,7 +382,7 @@ fit&lt;- PMC.sampler(N=10, carcass_obs, Tol, priors, MyData, parallel=F)
 ## completed particle  9  for seq  4 
 ## completed particle  10  for seq  4 
 ## Completed current tolerance  4 
-## Time elapsed: 0 hours 0 mins 10 secs
+## Time elapsed: 0 hours 0 mins 17 secs
 </code></pre>
 
 <pre><code class="r">theta&lt;- fit$Tol4$theta  # parameter estimates for final tolerance
@@ -382,17 +390,17 @@ theta[,1]&lt;- round(theta[1] + 1998) # transform syear to integer year of intro
 theta
 </code></pre>
 
-<pre><code>##       [,1]    [,2]   [,3]    [,4]   [,5]
-##  [1,] 2000 0.09639 0.2002 0.14620 0.9356
-##  [2,] 2000 0.19852 0.1805 0.15823 0.7377
-##  [3,] 2000 0.50767 0.1569 0.17728 0.3230
-##  [4,] 2000 0.51044 0.1836 0.15715 0.7203
-##  [5,] 2000 0.21591 0.1845 0.15304 0.4716
-##  [6,] 2000 0.41854 0.1458 0.17005 0.5453
-##  [7,] 2000 0.51858 0.1475 0.10641 0.1244
-##  [8,] 2000 0.12732 0.1698 0.16554 0.9121
-##  [9,] 2000 0.25588 0.1735 0.11923 1.0050
-## [10,] 2000 0.34117 0.1555 0.08312 0.2807
+<pre><code>##       [,1]    [,2]    [,3]    [,4]   [,5]
+##  [1,] 2001 0.05598 0.03516 0.29116 0.9053
+##  [2,] 2001 0.41952 0.12074 0.16031 0.6475
+##  [3,] 2001 0.49510 0.07862 0.08240 0.6344
+##  [4,] 2001 0.26175 0.35614 0.11494 0.7309
+##  [5,] 2001 0.31322 0.05488 0.31519 0.3341
+##  [6,] 2001 0.59792 0.03405 0.06699 0.1017
+##  [7,] 2001 0.29752 0.31443 0.18130 0.1813
+##  [8,] 2001 0.32113 0.05485 0.23005 0.8534
+##  [9,] 2001 0.40604 0.16432 0.14121 0.5233
+## [10,] 2001 0.05600 0.11849 0.26876 1.1556
 </code></pre>
 
 </body>

@@ -28,7 +28,7 @@
 #' \code{elapsed} elapsed time (in seconds)
 #' @export
 #' 
-PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=F, ncores=NULL, logfile=NULL, save.post=NULL){
+PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
   post.list<- list()    
   if(parallel & !is.null(ncores)) {
     library(parallel)
@@ -118,7 +118,7 @@ post.list
 #' @seealso \code{\link{PMC.sampler}}
 #' @export
 #' 
-PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=F, ncores=NULL, logfile=NULL, save.post=NULL){
+PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
   post.list<- list()    
   if(parallel & !is.null(ncores)) {
     library(parallel)

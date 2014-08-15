@@ -3,7 +3,7 @@
 \alias{PMC.sampler}
 \title{Sequential Population Monte Carlo Sampler}
 \usage{
-PMC.sampler(N, x0, SeqTol, priors, Data, parallel = F, ncores = NULL,
+PMC.sampler(N, x0, SeqTol, priors, Data, parallel = FALSE, ncores = NULL,
   logfile = NULL, save.post = NULL)
 }
 \arguments{

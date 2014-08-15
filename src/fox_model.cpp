@@ -124,22 +124,19 @@ List foxsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
   NumericVector roadloc(n);
   NumericVector huntloc(n);
   IntegerVector years = seq_len(nyears);
+  IntegerVector nkern = seq_len(Kern.size());
   List xpop(3);
-  
-  List ipts(incpoints);
-  List offspr_kern(Kern);
-  int iptsize = ipts.size();
-  NumericVector dkern(offspr_kern[0]);
-  
-  if(runif(1, 0, 1)[0] < 0.5) dkern = as<NumericVector>(offspr_kern[0]);
-  else dkern = as<NumericVector>(offspr_kern[1]);
+  int iptsize = incpoints.size();
+ 
+  int kern_no = RcppArmadillo::sample(nkern, 1, FALSE)[0] - 1;
+  NumericVector dkern = as<NumericVector>(Kern[kern_no]);
   
   for(int i = 0; i < n; i++) {
     if((xone[i] == suitable) & (uhunt[i] > phunt)) xhunt[i]=1; else xhunt[i]=0;  
   }
   
   for(int i = 0; i < iptsize; i++) { 
-     IntegerVector ip = as<IntegerVector>(ipts[i]);
+     IntegerVector ip = as<IntegerVector>(incpoints[i]);
      int relpoint = RcppArmadillo::sample(ip, 1, FALSE)[0];
      xone[relpoint] = occupied;     
   }
@@ -235,22 +232,20 @@ List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
   NumericVector roadloc(n);
   NumericVector huntloc(n);
   IntegerVector years = seq_len(nyears);
-  List xpop(3);
+  List xpop(4);
   List scatloc(nyears);
-  List ipts(incpoints);
-  List offspr_kern(Kern);
-  int iptsize = ipts.size();
-  NumericVector dkern(offspr_kern[0]);
+  IntegerVector nkern = seq_len(Kern.size());
+  int iptsize = incpoints.size();
   
-  if(runif(1, 0, 1)[0] < 0.5) dkern = as<NumericVector>(offspr_kern[0]);
-  else dkern = as<NumericVector>(offspr_kern[1]);
+  int kern_no = RcppArmadillo::sample(nkern, 1, FALSE)[0] - 1;
+  NumericVector dkern = as<NumericVector>(Kern[kern_no]);
   
   for(int i = 0; i < n; i++) {
     if((xone[i] == suitable) & (uhunt[i] > phunt)) xhunt[i]=1; else xhunt[i]=0;  
   }
   
   for(int i = 0; i < iptsize; i++) { 
-     IntegerVector ip = as<IntegerVector>(ipts[i]);
+     IntegerVector ip = as<IntegerVector>(incpoints[i]);
      int relpoint = RcppArmadillo::sample(ip, 1, FALSE)[0];
      xone[relpoint] = occupied;     
   }

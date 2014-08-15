@@ -18,7 +18,7 @@ kern1<- kernel2D(eps=3, kfun="gamma", shape=1, scale=3, max.disp=30)
 
 # Vagrant (searching) dispersal kernel. equal dispersal probability  
 # in all directions out to 30 km.
-kern2<- kernel2D(eps=3, kfun="circle", sigma=30, max.disp=30)
+kern2<- kernel2D(eps=3, kfun="uniform", sigma=30, max.disp=30)
 
 kern<- list(kern1, kern2)
 
@@ -56,7 +56,7 @@ priors<- list(list("uniform",-3.49,3.49),
               list("beta",17,83),
               list("uniform",0.1,2))
 
-## ------------------------------------------------------------------------
+## ----,cache=TRUE---------------------------------------------------------
 Tol<- c(5,4)
 
 fit<- PMC.sampler(N=10, carcass_obs, Tol, priors, MyData, parallel=F)
