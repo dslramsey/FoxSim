@@ -60,7 +60,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     
     post.list[[paste0("Tol",SeqTol[1])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
   
-    if(!is.null(save.post)) save(post.list,file=paste0(save.post,"tol",SeqTol[1],".RData"))
+    if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[1],".rds"))
     # Weights are uniform
   
   # Now select a weighted sample for each tolerance updating weights and proposal at each iteration
@@ -87,7 +87,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       duration = difftime(Sys.time(), start, units = "secs")
       
       post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
-      if(!is.null(save.post)) save(post.list,file=paste0(save.post,"tol",SeqTol[j],".RData"))      
+      if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds"))      
       cat("Completed current tolerance ",SeqTol[j],"\n")
       cat("Time elapsed:", display.time(duration),"\n")
   }  
@@ -157,7 +157,7 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     duration = difftime(Sys.time(), start, units = "secs")
     
     post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
-    if(!is.null(save.post)) save(post.list,file=paste0(save.post,"tol",SeqTol[j],".RData"))      
+    if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds"))      
     cat("Completed current tolerance ",SeqTol[j],"\n")
     cat("Time elapsed:", display.time(duration),"\n")
   }  
@@ -207,6 +207,61 @@ PMC.append<- function(x, TolName) {
   pop<- tmp$pop
   for(i in 2:n) {
     tmp<- x[[i]][[TolName]]
+    if(is.null(tmp)) stop("This tolerance does not occur in each object")
+    theta<- rbind(theta, tmp$theta)
+    xr<- rbind(xr, tmp$xr)
+    xs<- rbind(xs, tmp$xs)
+    pop<- c(pop, tmp$pop)
+  }
+  list(theta=theta,xr=xr,xs=xs,pop=pop)
+}
+#---------------------------------------------------------------------
+#' Append PMC model objects saved in rds files
+#'
+#' \code{PMC.appendFiles} appends posterior samples from 2 or more 
+#' \code{PMC.sampler} objects saved to rds binary files.  Only 
+#' posterior samples with the same tolerance are appended and this 
+#' needs to be specified using \code{TolName}. 
+#' 
+#' @param x A character vector of length at least 2 containing the relative
+#' or full paths and filenames for all saved files.  files should be binary 
+#' files saved from \code{PMC.sampler} (by setting \code{save.post}) and all 
+#' files should contain at least one similar tolerance value.
+#' @param TolName Character value indicating the tolerance value used for
+#' appending samples.
+#' 
+#' @return A list with elements of \code{x} appended.\cr
+#' \code{theta} - population parameter matrix.\cr  
+#' \code{xr} - simulated road killed carcasses.\cr
+#' \code{xs} - simulated hunter killed carcasses.\cr
+#' \code{pop} - population size trajectory for each year 
+#' (number of occupied cells).
+#' 
+#' @examples
+#' filenm<- paste0("post",1:3,".rds") # vector of filenames
+#' PMC.appendFiles(filenm, "Tol2")
+#'  
+#' @seealso \code{\link{PMC.sampler}} ,\code{\link{PMC.append}}
+#' 
+#' @export
+#' 
+PMC.appendFiles<- function(x, TolName) {
+  # append posterior samples from saved rds files with the same tolerance 
+  # x is a character vector of filenames  
+  # TolName is the specific element (tolerance) of each object
+  # to be appended
+  if(!is.character(x)) stop("x is not a character vector")
+  if(length(x) < 2) stop("Need at least 2 files to append")
+  n<- length(x)
+  tmp<- readRDS(x[1])
+  tmp<- tmp[[TolName]]
+  theta<- tmp$theta
+  xr<- tmp$xr
+  xs<- tmp$xs
+  pop<- tmp$pop
+  for(i in 2:n) {
+    tmp<- readRDS(x[i])
+    tmp<- tmp[[TolName]]
     if(is.null(tmp)) stop("This tolerance does not occur in each object")
     theta<- rbind(theta, tmp$theta)
     xr<- rbind(xr, tmp$xr)
