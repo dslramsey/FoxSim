@@ -28,7 +28,7 @@
 #' \code{elapsed} elapsed time (in seconds)
 #' @export
 #' 
-PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
+PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL, save.pop=NULL){
   post.list<- list()    
   if(parallel & !is.null(ncores)) {
     library(parallel)
@@ -38,7 +38,6 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       library(RcppArmadillo)
       library(FoxSim)
     })
-    #clusterExport(cl, varlist=c("ModelABC")) # export functions
   }
   start = Sys.time()
   # Use rejection sampling for first pass
@@ -50,8 +49,9 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     theta<- do.call('rbind',xx[1,])
     xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
     xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-    pop<- xx[4,]
-  
+    poploc<- xx[4,]
+    pop<- sapply(poploc, function(x) sum(x==2))
+     
     duration = difftime(Sys.time(), start, units = "secs")
     cat("Completed particles for tol ",SeqTol[1],"\n")
     cat("Time elapsed:", display.time(duration),"\n")
@@ -61,6 +61,8 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     post.list[[paste0("Tol",SeqTol[1])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
   
     if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[1],".rds"))
+    if(!is.null(save.pop)) saveRDS(poploc, file=paste0(save.pop,"pop",SeqTol[1],".rds"))
+    rm(poploc,xx) # cleanup
     # Weights are uniform
   
   # Now select a weighted sample for each tolerance updating weights and proposal at each iteration
@@ -80,16 +82,19 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       theta<- do.call('rbind',xx[1,])
       xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
       xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-      pop<- xx[4,]
-      
+      poploc<- xx[4,]
+      pop<- sapply(poploc, function(x) sum(x==2))      
       w<- calc.weights(theta, thetaold, wold, VarCov, priors)
       
       duration = difftime(Sys.time(), start, units = "secs")
       
       post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
-      if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds"))      
+      if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds")) 
+      if(!is.null(save.pop)) saveRDS(poploc, file=paste0(save.pop,"pop",SeqTol[j],".rds"))
+      
       cat("Completed current tolerance ",SeqTol[j],"\n")
       cat("Time elapsed:", display.time(duration),"\n")
+      rm(poploc,xx) # cleanup
   }  
 if(parallel) stopCluster(cl)                   
 post.list
@@ -118,7 +123,7 @@ post.list
 #' @seealso \code{\link{PMC.sampler}}
 #' @export
 #' 
-PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
+PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL, save.pop=NULL){
   post.list<- list()    
   if(parallel & !is.null(ncores)) {
     library(parallel)
@@ -128,7 +133,6 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
       library(RcppArmadillo)
       library(FoxSim)
     })
-    #clusterExport(cl, varlist=c("ModelABC")) # export functions
   }
   # Update a weighted sample for each tolerance updating weights and proposal at each iteration
   # proposals are multivariate normal
@@ -150,16 +154,19 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     theta<- do.call('rbind',xx[1,])
     xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
     xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
-    pop<- xx[4,]
+    poploc<- xx[4,]
+    pop<- sapply(poploc, function(x) sum(x==2))
     
     w<- calc.weights(theta, thetaold, wold, VarCov, priors)
     
     duration = difftime(Sys.time(), start, units = "secs")
     
     post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
-    if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds"))      
+    if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds"))  
+    if(!is.null(save.pop)) saveRDS(poploc, file=paste0(save.pop,"pop",SeqTol[j],".rds"))
     cat("Completed current tolerance ",SeqTol[j],"\n")
     cat("Time elapsed:", display.time(duration),"\n")
+    rm(poploc,xx) # cleanup
   }  
   if(parallel) stopCluster(cl)                   
   post.list
@@ -294,11 +301,11 @@ ModelABC<- function(parm, Data) {
 # Called by PMC.sampler  
   syear<- round(parm[1] + 1998)
   eyear<- Data$eyear 
-  Parms<- list(syear=syear,eyear=eyear,psurv=parm[2],proad=parm[3],pshot=parm[4],Ryear=parm[5])
+  Parms<- list(syear=syear,eyear=eyear,psurv=parm[2],proad=parm[3],pshot=parm[4],Ryear=parm[5],scatpr=Data$spars$pr,scatdr=Data$spars$dr)
   # Fox cellular automata C++ function from library(FoxSim) 
-  mod<- foxsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
+  mod<- foxscatsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
   
-  list(xr=mod[[1]],xs=mod[[2]],pop=mod[[3]])
+  list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]])
   
 }
 #-------------------------------------------------------------------------
@@ -413,19 +420,26 @@ ABC.reject<- function(i, x0, tol, priors, Data) {
     while(!found){
       thetac=sample.priors(priors)
       xc=ModelABC(thetac, Data)
-      xr0<- pre.pad(xc$xr,x0$xr)
-      xs0<- pre.pad(xc$xs,x0$xs)
-      if(distm(xc$xr,xr0) < tol & distm(xc$xs,xs0) < 1){
+      xr<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.vec,Data$ncell)
+      xs<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.vec,Data$ncell)
+      xr0<- pre.pad(xr,x0$xr)
+      xs0<- pre.pad(xs,x0$xs)
+      if(distm(xr,xr0) < tol & distm(xs,xs0) < 1){
         found<- TRUE
         theta<- thetac
-        xr<- xc$xr
-        xs<- xc$xs
+        xxr<- xr
+        xxs<- xs
         pop<- xc$pop
       }
     }
   cat("completed particle ",i," for seq ",tol,"\n")
-  list(theta,xr,xs,pop)
-  }  
+  list(theta,xxr,xxs,pop)
+  }
+#-----------------------------------------------------------------
+match.locations<- function(x, nr, nc, cobs, ncell) {
+  zz<- matchspatial(nr, nc, cobs, x, ncell, 1)
+  sum(zz)
+}
 #------------------------------------------------------------------------
 #' Weighted rejection sampler for ABC estimation
 #'
@@ -464,18 +478,20 @@ ABC.weighted<- function(i, parms, x0, tol, VarCov, w, priors, Data) {
     thetao=pick.particle(parms, w)             
     thetac=propose.theta(thetao, VarCov, priors)     
     xc=ModelABC(thetac, Data) 
-    xr0<- pre.pad(xc$xr,x0$xr)
-    xs0<- pre.pad(xc$xs,x0$xs)
-    if(distm(xc$xr,xr0) < tol & distm(xc$xs,xs0) < 1){
+    xr<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.vec,Data$ncell)
+    xs<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.vec,Data$ncell)
+    xr0<- pre.pad(xr,x0$xr)
+    xs0<- pre.pad(xs,x0$xs)
+    if(distm(xr,xr0) < tol & distm(xs,xs0) < 1){
       found<- TRUE
       theta<- thetac
-      xr<- xc$xr
-      xs<- xc$xs
+      xxr<- xr
+      xxs<- xs
       pop<- xc$pop
     } 
   }
   cat("completed particle ",i," for seq ",tol,"\n")
-  list(theta,xr,xs,pop)
+  list(theta,xxr,xxs,pop)
 }
 #--------------------------------------------------------------------------------
 #' Weights calculation for sequential Monte Carlo sampling
@@ -541,7 +557,7 @@ has.support <- function(parm, prior) {
 #' \code{propose.theta} proposes new parameter values based on 
 #' perturbing the input vector \code{theta} using a multivariate 
 #' normal distribution.  Multivariate normal proposals are 
-#' implemented using a Cholsky decomposition of \code{vcov}.
+#' implemented using a Cholski decomposition of \code{vcov}.
 #'  
 #' @param theta Vector of parameter values to perturb
 #' @param vcov Variance/covariance matrix for proposals
@@ -554,7 +570,7 @@ has.support <- function(parm, prior) {
 #' @seealso \code{\link{PMC.sampler}}, \code{\link{has.support}}
 #' @export
 propose.theta<- function(theta, vcov, priors) {
-  # multivariate normal proposals using Cholsky
+  # multivariate normal proposals using Cholski
   n<- length(theta)
   test<- FALSE
   while(!test) {

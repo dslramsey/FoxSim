@@ -21,7 +21,7 @@ Vector of proposed parameters the same length as
 \code{propose.theta} proposes new parameter values based on
 perturbing the input vector \code{theta} using a multivariate
 normal distribution.  Multivariate normal proposals are
-implemented using a Cholsky decomposition of \code{vcov}.
+implemented using a Cholski decomposition of \code{vcov}.
 }
 \seealso{
 \code{\link{PMC.sampler}}, \code{\link{has.support}}

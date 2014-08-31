@@ -4,7 +4,7 @@
 \title{Sequential Population Monte Carlo Sampler - Updater}
 \usage{
 PMC.update(post, N, x0, SeqTol, priors, Data, parallel = FALSE,
-  ncores = NULL, logfile = NULL, save.post = NULL)
+  ncores = NULL, logfile = NULL, save.post = NULL, save.pop = NULL)
 }
 \arguments{
 \item{post}{output from a single tolerance from \code{PMS.sampler}}

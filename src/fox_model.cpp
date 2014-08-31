@@ -28,7 +28,7 @@ int isInside(int n, int m, int i, int j) {
 }
 
 // [[Rcpp::export]]
-NumericVector neighboursCpp(int n, int m, NumericVector x,  
+NumericVector neighbourhood(int n, int m, NumericVector x,  
                 int ndist, NumericVector wdist, int state) {
   /* 
     n = number of rows in grid
@@ -59,7 +59,34 @@ NumericVector neighboursCpp(int n, int m, NumericVector x,
   }
   return(y);
 }
-
+//----------------------------------------------------------------
+// [[Rcpp::export]]
+NumericVector matchspatial(int n, int m, NumericVector y, NumericVector x, 
+            int ncells, int state) {
+  /*
+    y is vector of actual carcass locations
+    x is vector of simulated carcass locations
+    ncells is the number of cells (distance) used to match location
+    state is the value to check for
+    return vector z contains carcasses in x within ncells of y
+  */
+  
+  NumericVector z(n*m); 
+  
+  for (int i = 0; i < n; i++) {
+    for (int j = 0; j < m; j++) {
+      if(x[i + n * j] == state) { 
+        for(int ii = imax(-ncells,-i); ii <= imin(n-i,ncells); ii++) {
+          for(int jj= imax(-ncells,-j); jj <= imin(m-j,ncells); jj++) {
+            if(y[(i + ii) + n * (j + jj)] == 1) 
+              z[i + n * j] = state;
+          }
+        }
+      }
+    }
+  }
+  return(z);
+}
 //----------------------------------------------------------------
 List advancepop(int nr, int nc, int ndist, NumericVector x, NumericVector roads,
               NumericVector xhunt, NumericVector offspkern, List parms) {
@@ -81,7 +108,7 @@ List advancepop(int nr, int nc, int ndist, NumericVector x, NumericVector roads,
   NumericVector xsea(n);
   NumericVector roadcells(n);
   NumericVector huntcells(n);
-  NumericVector nb = neighboursCpp(nr, nc, x, ndist, offspkern, occupied); 
+  NumericVector nb = neighbourhood(nr, nc, x, ndist, offspkern, occupied); 
   NumericVector genprob = 1 - exp(-Ryear * nb);
   
   for(int i = 0; i < n; i++) {    
@@ -163,8 +190,10 @@ List advancepop_s(int nr, int nc, int ndist, NumericVector x, NumericVector road
                 
   double psurv = as<double>(parms["psurv"]);
   double Ryear = as<double>(parms["Ryear"]);
-  int scat_pr = as<int>(parms["scatpr"]);
-  NumericVector scat_dr = as<NumericVector>(parms["scatdr"]);
+  double proad = as<double>(parms["proad"]);
+  double pshot = as<double>(parms["pshot"]);
+//  int scat_pr = as<int>(parms["scatpr"]);
+//  NumericVector scat_dr = as<NumericVector>(parms["scatdr"]);
   
   int occupied = 2;
   int suitable = 1;
@@ -174,6 +203,8 @@ List advancepop_s(int nr, int nc, int ndist, NumericVector x, NumericVector road
   
   NumericVector u = runif(n, 0, 1);
   NumericVector ugen = runif(n, 0, 1); 
+  NumericVector uroad = runif(n, 0, 1);
+  NumericVector ushot = runif(n, 0, 1);
   NumericVector xdeath(n);
   NumericVector xsurv(n);
   NumericVector xgen(n);
@@ -181,8 +212,8 @@ List advancepop_s(int nr, int nc, int ndist, NumericVector x, NumericVector road
   NumericVector xsea(n);
   NumericVector roadcells(n);
   NumericVector huntcells(n);
-  NumericVector scats(n);
-  NumericVector nb = neighboursCpp(nr, nc, x, ndist, offspkern, occupied); 
+//  NumericVector scats(n);
+  NumericVector nb = neighbourhood(nr, nc, x, ndist, offspkern, occupied); 
   NumericVector genprob = 1 - exp(-Ryear * nb);
   
   for(int i = 0; i < n; i++) {    
@@ -192,17 +223,19 @@ List advancepop_s(int nr, int nc, int ndist, NumericVector x, NumericVector road
     if((x[i] == suitable) && (xgen[i] == 0)) xsuit[i] = suitable; else xsuit[i]=unsuitable;
     if(x[i] == ocean) xsea[i]=ocean; else xsea[i]=0;
     x[i] = xgen[i] + xdeath[i] + xsurv[i] + xsuit[i] + xsea[i];
-    // define at risk road and hunting kills and scats
-    if((x[i] == occupied) && (roads[i] == 1)) roadcells[i] = 1; else roadcells[i]=0;
-    if((x[i] == occupied) && (xhunt[i] == 1)) huntcells[i] = 1; else huntcells[i]=0;  
-    if(x[i] == occupied) {  // do scat production per occupied cell
-      double dr = exp(rnorm(1, scat_dr[0], scat_dr[1])[0]);
-      int pr = rpois(1, scat_pr)[0];
-      double tscats = -pr * exp(-dr * 365)/dr - (-pr/dr);
-      scats[i] = round(tscats * scat_dr[2]);  // scats on linear features 
-    }
+    // simulate roadkills, hunting kills and scats scats
+    if((x[i] == occupied) && (roads[i] == 1) && (uroad[i] < proad)) 
+          roadcells[i] = 1; else roadcells[i]=0;
+    if((x[i] == occupied) && (xhunt[i] == 1) && (ushot[i] < pshot)) 
+          huntcells[i] = 1; else huntcells[i]=0;  
+//    if(x[i] == occupied) {  // do scat production per occupied cell
+//      double dr = exp(rnorm(1, scat_dr[0], scat_dr[1])[0]);
+//      int pr = rpois(1, scat_pr)[0];
+//      double tscats = -pr * exp(-dr * 365)/dr - (-pr/dr);
+//      scats[i] = round(tscats * scat_dr[2]);  // scats on linear features 
+//    }
   }
-  return(List::create(x, roadcells, huntcells, scats));
+  return(List::create(x, roadcells, huntcells));
 }
 //------------------------------------------------------------------------------
 // [[Rcpp::export]]
@@ -213,8 +246,6 @@ List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
   
   int startyear = as<int>(parms["syear"]);
   int endyear = as<int>(parms["eyear"]);  
-  double proad = as<double>(parms["proad"]);
-  double pshot = as<double>(parms["pshot"]);
   
   int occupied = 2;
   int suitable = 1;
@@ -224,16 +255,11 @@ List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
   NumericVector xone(clone(x));
   NumericVector uhunt = runif(n, 0, 1);
   NumericVector xhunt(n);
-  NumericVector roadkills(nyears);
-  NumericVector shotkills(nyears);
-  NumericVector roadrisk(nyears);
-  NumericVector shotrisk(nyears);
-  NumericVector popsize(nyears);
-  NumericVector roadloc(n);
-  NumericVector huntloc(n);
   IntegerVector years = seq_len(nyears);
-  List xpop(4);
-  List scatloc(nyears);
+  List xpop(3);
+  List roadloc(nyears);
+  List huntloc(nyears);
+  List poploc(nyears);
   IntegerVector nkern = seq_len(Kern.size());
   int iptsize = incpoints.size();
   
@@ -254,17 +280,12 @@ List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
   for(int j = 0; j < nyears; j++) {
     xpop = advancepop_s(nr,nc,ksize,xone,roads,xhunt,dkern,parms);
     xone = xpop[0];
-    roadloc = xpop[1];
-    huntloc = xpop[2];
-    scatloc[j] = xpop[3];
-    popsize[j] = sum(xone == 2);
-    roadrisk[j] = sum(roadloc==1);
-    shotrisk[j] = sum(huntloc==1);
-    roadkills[j] = rbinom(1, roadrisk[j], proad)[0];
-    shotkills[j] = rbinom(1, shotrisk[j], pshot)[0];
+    poploc[j]  = xone;
+    roadloc[j] = xpop[1];
+    huntloc[j] = xpop[2]; 
   }
   
-  return(List::create(roadkills,shotkills,popsize,scatloc));
+  return(List::create(roadloc,huntloc,poploc));
 }
 
 //===============================================================
