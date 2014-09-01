@@ -28,7 +28,7 @@
 #' \code{elapsed} elapsed time (in seconds)
 #' @export
 #' 
-PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL, save.pop=NULL){
+PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
   post.list<- list()    
   if(parallel & !is.null(ncores)) {
     library(parallel)
@@ -50,7 +50,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
     xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
     poploc<- xx[4,]
-    pop<- sapply(poploc, function(x) sum(x==2))
+    pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
      
     duration = difftime(Sys.time(), start, units = "secs")
     cat("Completed particles for tol ",SeqTol[1],"\n")
@@ -61,7 +61,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     post.list[[paste0("Tol",SeqTol[1])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
   
     if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[1],".rds"))
-    if(!is.null(save.pop)) saveRDS(poploc, file=paste0(save.pop,"pop",SeqTol[1],".rds"))
+    if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",SeqTol[1],".rds"))
     rm(poploc,xx) # cleanup
     # Weights are uniform
   
@@ -83,14 +83,14 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
       xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
       poploc<- xx[4,]
-      pop<- sapply(poploc, function(x) sum(x==2))      
+      pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
       w<- calc.weights(theta, thetaold, wold, VarCov, priors)
       
       duration = difftime(Sys.time(), start, units = "secs")
       
       post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
       if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds")) 
-      if(!is.null(save.pop)) saveRDS(poploc, file=paste0(save.pop,"pop",SeqTol[j],".rds"))
+      if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",SeqTol[j],".rds"))
       
       cat("Completed current tolerance ",SeqTol[j],"\n")
       cat("Time elapsed:", display.time(duration),"\n")
@@ -123,7 +123,7 @@ post.list
 #' @seealso \code{\link{PMC.sampler}}
 #' @export
 #' 
-PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL, save.pop=NULL){
+PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
   post.list<- list()    
   if(parallel & !is.null(ncores)) {
     library(parallel)
@@ -155,7 +155,7 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
     xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
     poploc<- xx[4,]
-    pop<- sapply(poploc, function(x) sum(x==2))
+    pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
     
     w<- calc.weights(theta, thetaold, wold, VarCov, priors)
     
@@ -163,7 +163,7 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     
     post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
     if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds"))  
-    if(!is.null(save.pop)) saveRDS(poploc, file=paste0(save.pop,"pop",SeqTol[j],".rds"))
+    if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",SeqTol[j],".rds"))
     cat("Completed current tolerance ",SeqTol[j],"\n")
     cat("Time elapsed:", display.time(duration),"\n")
     rm(poploc,xx) # cleanup
@@ -299,9 +299,11 @@ PMC.appendFiles<- function(x, TolName) {
 #' 
 ModelABC<- function(parm, Data) {
 # Called by PMC.sampler  
-  syear<- round(parm[1] + 1998)
+  nintro<- length(Data$ipoints)
+  pintro<- parm[1:nintro]
+  syear<- round(parm[nintro+1] + 1998)
   eyear<- Data$eyear 
-  Parms<- list(syear=syear,eyear=eyear,psurv=parm[2],proad=parm[3],pshot=parm[4],Ryear=parm[5],scatpr=Data$spars$pr,scatdr=Data$spars$dr)
+  Parms<- list(pintro=pintro,syear=syear,eyear=eyear,psurv=parm[nintro+2],proad=parm[nintro+3],pshot=parm[nintro+4],Ryear=parm[nintro+5])
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxscatsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
   

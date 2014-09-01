@@ -4,7 +4,7 @@
 \title{Sequential Population Monte Carlo Sampler}
 \usage{
 PMC.sampler(N, x0, SeqTol, priors, Data, parallel = FALSE, ncores = NULL,
-  logfile = NULL, save.post = NULL, save.pop = NULL)
+  logfile = NULL, save.post = NULL)
 }
 \arguments{
 \item{N}{size of the population of parameters to be estimated}
