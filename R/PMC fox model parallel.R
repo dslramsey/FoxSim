@@ -299,11 +299,10 @@ PMC.appendFiles<- function(x, TolName) {
 #' 
 ModelABC<- function(parm, Data) {
 # Called by PMC.sampler  
-  nintro<- length(Data$ipoints)
-  pintro<- parm[1:nintro]
-  syear<- round(parm[nintro+1] + 1998)
+  pintro<- round(parm[1])
+  syear<- round(parm[2] + 1998)
   eyear<- Data$eyear 
-  Parms<- list(pintro=pintro,syear=syear,eyear=eyear,psurv=parm[nintro+2],proad=parm[nintro+3],pshot=parm[nintro+4],Ryear=parm[nintro+5])
+  Parms<- list(pintro=pintro,syear=syear,eyear=eyear,psurv=parm[3],proad=parm[4],pshot=parm[5],Ryear=parm[6])
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxscatsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
   
@@ -422,24 +421,28 @@ ABC.reject<- function(i, x0, tol, priors, Data) {
     while(!found){
       thetac=sample.priors(priors)
       xc=ModelABC(thetac, Data)
-      xr<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.vec,Data$ncell)
-      xs<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.vec,Data$ncell)
-      xr0<- pre.pad(xr,x0$xr)
-      xs0<- pre.pad(xs,x0$xs)
-      if(distm(xr,xr0) < tol & distm(xs,xs0) < 1){
-        found<- TRUE
-        theta<- thetac
-        xxr<- xr
-        xxs<- xs
-        pop<- xc$pop
+      xr.sim<- sapply(xc$xr, sum)
+      xs.sim<- sapply(xc$xs, sum)
+      xr0<- pre.pad(xr.sim,x0$xr)
+      xs0<- pre.pad(xs.sim,x0$xs)
+      if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
+        xr.sim<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.road,Data$ncell)
+        xs.sim<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.shot,Data$ncell)
+        if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
+          found<- TRUE
+          theta<- thetac
+          xr<- xr.sim
+          xs<- xs.sim
+          pop<- xc$pop
+        }
       }
     }
   cat("completed particle ",i," for seq ",tol,"\n")
-  list(theta,xxr,xxs,pop)
+  list(theta,xr,xs,pop)
   }
 #-----------------------------------------------------------------
-match.locations<- function(x, nr, nc, cobs, ncell) {
-  zz<- matchspatial(nr, nc, cobs, x, ncell, 1)
+match.locations<- function(x, nr, nc, locs, ncell) {
+  zz<- matchspatial(nr, nc, locs, x, ncell, 1)
   sum(zz)
 }
 #------------------------------------------------------------------------
@@ -480,20 +483,24 @@ ABC.weighted<- function(i, parms, x0, tol, VarCov, w, priors, Data) {
     thetao=pick.particle(parms, w)             
     thetac=propose.theta(thetao, VarCov, priors)     
     xc=ModelABC(thetac, Data) 
-    xr<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.vec,Data$ncell)
-    xs<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.vec,Data$ncell)
-    xr0<- pre.pad(xr,x0$xr)
-    xs0<- pre.pad(xs,x0$xs)
-    if(distm(xr,xr0) < tol & distm(xs,xs0) < 1){
-      found<- TRUE
-      theta<- thetac
-      xxr<- xr
-      xxs<- xs
-      pop<- xc$pop
+    xr.sim<- sapply(xc$xr, sum)
+    xs.sim<- sapply(xc$xs, sum)    
+    xr0<- pre.pad(xr.sim,x0$xr)
+    xs0<- pre.pad(xs.sim,x0$xs)
+    if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
+      xr.sim<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.road,Data$ncell)
+      xs.sim<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.shot,Data$ncell)
+      if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
+        found<- TRUE
+        theta<- thetac
+        xr<- xr.sim
+        xs<- xs.sim
+        pop<- xc$pop
+      }
     } 
   }
   cat("completed particle ",i," for seq ",tol,"\n")
-  list(theta,xxr,xxs,pop)
+  list(theta,xr,xs,pop)
 }
 #--------------------------------------------------------------------------------
 #' Weights calculation for sequential Monte Carlo sampling

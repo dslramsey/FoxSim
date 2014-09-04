@@ -5,8 +5,8 @@ neighbourhood <- function(n, m, x, ndist, wdist, state) {
     .Call('FoxSim_neighbourhood', PACKAGE = 'FoxSim', n, m, x, ndist, wdist, state)
 }
 
-matchspatial <- function(n, m, y, x, ncells, state) {
-    .Call('FoxSim_matchspatial', PACKAGE = 'FoxSim', n, m, y, x, ncells, state)
+matchspatial <- function(n, m, locs, x, ncells, state) {
+    .Call('FoxSim_matchspatial', PACKAGE = 'FoxSim', n, m, locs, x, ncells, state)
 }
 
 foxsim <- function(nr, nc, ksize, x, roads, incpoints, Kern, parms) {

@@ -60,8 +60,8 @@ NumericVector neighbourhood(int n, int m, NumericVector x,
   return(y);
 }
 //----------------------------------------------------------------
-// [[Rcpp::export]]
-NumericVector matchspatial(int n, int m, NumericVector y, NumericVector x, 
+// deprecated
+LogicalVector matchspatial2(int n, int m, NumericVector y, NumericVector x, 
             int ncells, int state) {
   /*
     y is vector of actual carcass locations
@@ -71,7 +71,7 @@ NumericVector matchspatial(int n, int m, NumericVector y, NumericVector x,
     return vector z contains carcasses in x within ncells of y
   */
   
-  NumericVector z(n*m); 
+  LogicalVector z(n*m); 
   
   for (int i = 0; i < n; i++) {
     for (int j = 0; j < m; j++) {
@@ -79,12 +79,37 @@ NumericVector matchspatial(int n, int m, NumericVector y, NumericVector x,
         for(int ii = imax(-ncells,-i); ii <= imin(n-i,ncells); ii++) {
           for(int jj= imax(-ncells,-j); jj <= imin(m-j,ncells); jj++) {
             if(y[(i + ii) + n * (j + jj)] == 1) 
-              z[i + n * j] = state;
+              z[i + n * j] = true;
           }
         }
       }
     }
   }
+  return(z);
+}
+//----------------------------------------------------------------
+// [[Rcpp::export]]
+LogicalVector matchspatial(int n, int m, NumericMatrix locs,
+        NumericVector x, int ncells, int state) {
+  /*
+    rn is vector of row number fo actual locations
+    cn is vector of col number fo actual locations
+    x is vector of simulated locations
+    ncells is the number of cells (distance) used to match location
+    state is the value to check for
+    return vector z contains locations in x within ncells of 
+  */
+  
+  LogicalVector z(n*m); 
+  int nlocs = locs.nrow();
+    for(int k = 0; k < nlocs; k++) {
+      for(int ii = imax(-ncells,-locs(k,0)); ii <= imin(n-locs(k,0),ncells); ii++) {
+          for(int jj= imax(-ncells,-locs(k,1)); jj <= imin(m-locs(k,1),ncells); jj++) {
+            if(x[(locs(k,0) + ii) + n * (locs(k,1) + jj)] == state) 
+               z[(locs(k,0) + ii) + n * (locs(k,1) + jj)] = true;
+          }
+        }
+      }
   return(z);
 }
 //----------------------------------------------------------------
@@ -244,7 +269,7 @@ List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
   
   RNGScope scope ;  // initialise RNG         
   
-  NumericVector pintro = as<NumericVector>(parms["pintro"]);
+  int pintro = as<int>(parms["pintro"]);
   int startyear = as<int>(parms["syear"]);
   int endyear = as<int>(parms["eyear"]);  
   int occupied = 2;
@@ -270,13 +295,16 @@ List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
     if((xone[i] == suitable) & (uhunt[i] > phunt)) xhunt[i]=1; else xhunt[i]=0;  
   }
   
-  for(int i = 0; i < iptsize; i++) { 
-    // probabilistic introduction points from pintro
-     IntegerVector ip = as<IntegerVector>(incpoints[i]);
-     int relpoint = RcppArmadillo::sample(ip, 1, FALSE)[0];
-     if(runif(1, 0, 1)[0] < pintro[i]) xone[relpoint] = occupied;     
-  }
+//  for(int i = 0; i < iptsize; i++) { 
+//    probabilistic introduction points from pintro
+//     IntegerVector ip = as<IntegerVector>(incpoints[i]);
+//     int relpoint = RcppArmadillo::sample(ip, 1, FALSE)[0];
+//     if(runif(1, 0, 1)[0] < pintro[i]) xone[relpoint] = occupied;     
+//  }
   
+  IntegerVector ip = as<IntegerVector>(incpoints[pintro]);
+  int relpoint = RcppArmadillo::sample(ip, 1, FALSE)[0];
+  xone[relpoint] = occupied; 
   
   for(int j = 0; j < nyears; j++) {
     xpop = advancepop_s(nr,nc,ksize,xone,roads,xhunt,dkern,parms);

@@ -27,19 +27,19 @@ BEGIN_RCPP
 END_RCPP
 }
 // matchspatial
-NumericVector matchspatial(int n, int m, NumericVector y, NumericVector x, int ncells, int state);
-RcppExport SEXP FoxSim_matchspatial(SEXP nSEXP, SEXP mSEXP, SEXP ySEXP, SEXP xSEXP, SEXP ncellsSEXP, SEXP stateSEXP) {
+LogicalVector matchspatial(int n, int m, NumericMatrix locs, NumericVector x, int ncells, int state);
+RcppExport SEXP FoxSim_matchspatial(SEXP nSEXP, SEXP mSEXP, SEXP locsSEXP, SEXP xSEXP, SEXP ncellsSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
         Rcpp::traits::input_parameter< int >::type n(nSEXP );
         Rcpp::traits::input_parameter< int >::type m(mSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type y(ySEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type locs(locsSEXP );
         Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
         Rcpp::traits::input_parameter< int >::type ncells(ncellsSEXP );
         Rcpp::traits::input_parameter< int >::type state(stateSEXP );
-        NumericVector __result = matchspatial(n, m, y, x, ncells, state);
+        LogicalVector __result = matchspatial(n, m, locs, x, ncells, state);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
