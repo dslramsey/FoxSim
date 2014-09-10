@@ -299,10 +299,11 @@ PMC.appendFiles<- function(x, TolName) {
 #' 
 ModelABC<- function(parm, Data) {
 # Called by PMC.sampler  
-  pintro<- round(parm[1])
-  syear<- round(parm[2] + 1998)
+  syear<- Data$syear
   eyear<- Data$eyear 
-  Parms<- list(pintro=pintro,syear=syear,eyear=eyear,psurv=parm[3],proad=parm[4],pshot=parm[5],Ryear=parm[6])
+  pintro<- round(parm[1:2])
+  yintro<- round(parm[3:4] + syear)
+  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[5],proad=parm[6],pshot=parm[7],Ryear=parm[8])
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxscatsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
   
@@ -714,9 +715,9 @@ display.time<- function(z) {
   z<- as.numeric(z)
   d<- z %/% 86400 # days
   if(d > 0){
-    h <- (z - 86400) %/% 60 %/% 60  # hours
-    m <- (z - 86400) %/% 60 %% 60 # mins 
-    s <- (z - 86400) %% 60 %% 60 # secs 
+    h <- (z - d*86400) %/% 60 %/% 60  # hours
+    m <- (z - d*86400) %/% 60 %% 60 # mins 
+    s <- (z - d*86400) %% 60 %% 60 # secs 
     if(d==1)
       paste0(d," day ",h," hours ",m," mins ",round(s)," secs")
     else

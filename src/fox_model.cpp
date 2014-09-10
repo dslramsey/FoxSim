@@ -269,9 +269,12 @@ List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
   
   RNGScope scope ;  // initialise RNG         
   
-  int pintro = as<int>(parms["pintro"]);
+  IntegerVector pintro = as<IntegerVector>(parms["pintro"]);
+  IntegerVector yintro = as<IntegerVector>(parms["yintro"]);
   int startyear = as<int>(parms["syear"]);
   int endyear = as<int>(parms["eyear"]);  
+  int iyear[2];
+  int relpoint[2];
   int occupied = 2;
   int suitable = 1;
   int nyears = endyear - startyear + 1;
@@ -295,18 +298,18 @@ List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads,
     if((xone[i] == suitable) & (uhunt[i] > phunt)) xhunt[i]=1; else xhunt[i]=0;  
   }
   
-//  for(int i = 0; i < iptsize; i++) { 
-//    probabilistic introduction points from pintro
-//     IntegerVector ip = as<IntegerVector>(incpoints[i]);
-//     int relpoint = RcppArmadillo::sample(ip, 1, FALSE)[0];
-//     if(runif(1, 0, 1)[0] < pintro[i]) xone[relpoint] = occupied;     
-//  }
-  
-  IntegerVector ip = as<IntegerVector>(incpoints[pintro]);
-  int relpoint = RcppArmadillo::sample(ip, 1, FALSE)[0];
-  xone[relpoint] = occupied; 
+  for(int i = 0; i < iptsize; i++) { 
+     List iplist = as<List>(incpoints[i]);   
+     IntegerVector ip = as<IntegerVector>(iplist[pintro[i]]);
+     relpoint[i] = RcppArmadillo::sample(ip, 1, FALSE)[0];   
+  }
+    
+  iyear[0] = nyears - (endyear-yintro[0]) - 1;
+  iyear[1] = nyears - (endyear-yintro[1]) - 1;
   
   for(int j = 0; j < nyears; j++) {
+    if(j == iyear[0]) xone[relpoint[0]] = occupied;
+    if(j == iyear[1]) xone[relpoint[1]] = occupied;
     xpop = advancepop_s(nr,nc,ksize,xone,roads,xhunt,dkern,parms);
     xone = xpop[0];
     NumericVector pop(clone(xone));  //make deep copy
