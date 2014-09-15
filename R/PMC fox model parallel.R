@@ -49,7 +49,8 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     theta<- do.call('rbind',xx[1,])
     xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
     xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-    poploc<- xx[4,]
+    xspot.sim<- t(sapply(xx[4,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+    poploc<- xx[5,]
     pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
      
     duration = difftime(Sys.time(), start, units = "secs")
@@ -58,7 +59,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
   
     w<- rep(1/N,N) 
     
-    post.list[[paste0("Tol",SeqTol[1])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
+    post.list[[paste0("Tol",SeqTol[1])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, pop=pop, weights=w, elapsed=duration)
   
     if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[1],".rds"))
     if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",SeqTol[1],".rds"))
@@ -82,13 +83,14 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       theta<- do.call('rbind',xx[1,])
       xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
       xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-      poploc<- xx[4,]
+      xspot.sim<- t(sapply(xx[4,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+      poploc<- xx[5,]
       pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
       w<- calc.weights(theta, thetaold, wold, VarCov, priors)
       
       duration = difftime(Sys.time(), start, units = "secs")
       
-      post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
+      post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, pop=pop, weights=w, elapsed=duration)
       if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds")) 
       if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",SeqTol[j],".rds"))
       
@@ -154,14 +156,15 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     theta<- do.call('rbind',xx[1,])
     xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
     xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
-    poploc<- xx[4,]
+    xspot.sim<- t(sapply(xx[4,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+    poploc<- xx[5,]
     pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
     
     w<- calc.weights(theta, thetaold, wold, VarCov, priors)
     
     duration = difftime(Sys.time(), start, units = "secs")
     
-    post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, pop=pop, weights=w, elapsed=duration)
+    post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, pop=pop, weights=w, elapsed=duration)
     if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds"))  
     if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",SeqTol[j],".rds"))
     cat("Completed current tolerance ",SeqTol[j],"\n")
@@ -171,56 +174,6 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
   if(parallel) stopCluster(cl)                   
   post.list
   
-}
-#------------------------------------------------------------------
-#' Append PMC model objects
-#'
-#' \code{PMC.append} appends posterior samples from 2 or more objects
-#' produced by \code{PMC.sampler}.  Only posterior samples with the same
-#' tolerance are appended and this needs to be specified using \code{TolName}. 
-#' 
-#' @param x A list with at least 2 elements containing \code{PMC.sampler}
-#' objects.  Each element of \code{x} must contain samples with at least 
-#' one similar tolerance value.
-#' @param TolName Character value indicating the tolerance value used for
-#' appending samples.
-#' 
-#' @return A list with elements of \code{x} appended.\cr
-#' \code{theta} - population parameter matrix.\cr  
-#' \code{xr} - simulated road killed carcasses.\cr
-#' \code{xs} - simulated hunter killed carcasses.\cr
-#' \code{pop} - population size trajectory for each year 
-#' (number of occupied cells).
-#' 
-#' @examples
-#' PMC.append(list(fit1, fit2), "Tol2")
-#'  
-#' @seealso \code{\link{PMC.sampler}}
-#' 
-#' @export
-#' 
-PMC.append<- function(x, TolName) {
-  # append posterior samples from objects with the same tolerance 
-  # x is a list of objects produced by PMC.sampler  
-  # TolName is the specific element (tolerance) of each object
-  # to be appended
-  if(!is.list(x)) stop("x is not a list")
-  if(length(x) < 2) stop("Need at least 2 objects to append")
-  n<- length(x)
-  tmp<- x[[1]][[TolName]]
-  theta<- tmp$theta
-  xr<- tmp$xr
-  xs<- tmp$xs
-  pop<- tmp$pop
-  for(i in 2:n) {
-    tmp<- x[[i]][[TolName]]
-    if(is.null(tmp)) stop("This tolerance does not occur in each object")
-    theta<- rbind(theta, tmp$theta)
-    xr<- rbind(xr, tmp$xr)
-    xs<- rbind(xs, tmp$xs)
-    pop<- c(pop, tmp$pop)
-  }
-  list(theta=theta,xr=xr,xs=xs,pop=pop)
 }
 #---------------------------------------------------------------------
 #' Append PMC model objects saved in rds files
@@ -236,11 +189,14 @@ PMC.append<- function(x, TolName) {
 #' files should contain at least one similar tolerance value.
 #' @param TolName Character value indicating the tolerance value used for
 #' appending samples.
+#' @param fileout character value of the filename to write the appended object 
+#' to a file. Default is \code{NULL} which does not write anything.
 #' 
 #' @return A list with elements of \code{x} appended.\cr
 #' \code{theta} - population parameter matrix.\cr  
 #' \code{xr} - simulated road killed carcasses.\cr
 #' \code{xs} - simulated hunter killed carcasses.\cr
+#' \code{xspot} - simulated spotlight detections. \cr
 #' \code{pop} - population size trajectory for each year 
 #' (number of occupied cells).
 #' 
@@ -248,11 +204,11 @@ PMC.append<- function(x, TolName) {
 #' filenm<- paste0("post",1:3,".rds") # vector of filenames
 #' PMC.appendFiles(filenm, "Tol2")
 #'  
-#' @seealso \code{\link{PMC.sampler}} ,\code{\link{PMC.append}}
+#' @seealso \code{\link{PMC.sampler}}
 #' 
 #' @export
 #' 
-PMC.appendFiles<- function(x, TolName) {
+PMC.appendFiles<- function(x, TolName, fileout=NULL) {
   # append posterior samples from saved rds files with the same tolerance 
   # x is a character vector of filenames  
   # TolName is the specific element (tolerance) of each object
@@ -265,6 +221,7 @@ PMC.appendFiles<- function(x, TolName) {
   theta<- tmp$theta
   xr<- tmp$xr
   xs<- tmp$xs
+  xspot<- tmp$xspot
   pop<- tmp$pop
   for(i in 2:n) {
     tmp<- readRDS(x[i])
@@ -273,9 +230,12 @@ PMC.appendFiles<- function(x, TolName) {
     theta<- rbind(theta, tmp$theta)
     xr<- rbind(xr, tmp$xr)
     xs<- rbind(xs, tmp$xs)
+    xspot<- rbind(xspot, tmp$xspot)
     pop<- c(pop, tmp$pop)
   }
-  list(theta=theta,xr=xr,xs=xs,pop=pop)
+  temp<- list(theta=theta,xr=xr,xs=xs,xspot=xspot,pop=pop)
+  if(!is.null(fileout)) saveRDS(temp,file=fileout)
+  temp
 }
 #-----------------------------------------------------------------------
 #' Model parser for PMC
@@ -303,11 +263,12 @@ ModelABC<- function(parm, Data) {
   eyear<- Data$eyear 
   pintro<- round(parm[1:2])
   yintro<- round(parm[3:4] + syear)
-  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[5],proad=parm[6],pshot=parm[7],Ryear=parm[8])
+  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[5],proad=parm[6],pshot=parm[7],Ryear=parm[9])
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxscatsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
+  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[8], 0.2, 3))
   
-  list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]])
+  list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot)
   
 }
 #-------------------------------------------------------------------------
@@ -392,6 +353,47 @@ pre.pad<- function(x, obs) {
   nzeros<- length(x) - length(obs)
   c(rep(0,nzeros),obs)
 }
+#-----------------------------------------------------------------
+#' Spatial Matching of cell locations
+#'
+#' \code{match.locations} performs spatial matching of cells in the vector
+#'  \code{x} against locations given in the matrix \code{locs}. Used for 
+#'  spatial matching of simulated observations with observed locations. 
+#'  Wrapper for the C++ function \code{matchspatial}.
+#'  
+#' @param x vector of size \code{nr} * \code{nc} representing cell
+#' locations that will be spatially matched against the locations
+#' in \code{locs}.
+#' @param nr number of rows in \code{x}
+#' @param nc number of columns in \code{x}
+#' @param locs Matrix specifying the row and column number of
+#' cell locations to match against.
+#' @param ncell The spatial tolerance for specifying a match given
+#' as the radial distance in cell units.
+#' @param Val integer representing the cell value used for matching
+#' 
+#' @return a logical vector of size \code{nr} * \code{nc} with values 
+#' set to \code{TRUE} for cell locations in \code{x} that are within
+#'  \code{ncells} distance of locations given in \code{locs} 
+#'  (i.e. within \code{ncells} of \code{x[locs[,1] + nr * locs[,2]]} 
+#' 
+#' @seealso \code{\link{ABC.reject}}, \code{\link{ABC.weighted}}
+#' @export
+match.locations<- function(x, nr, nc, locs, ncell, Val) {
+  zz<- matchspatial(nr, nc, locs, x, ncell, Val)
+  sum(zz)
+}
+#-----------------------------------------------------------------
+spotlight.survey<- function(occ, spotlocs, prob, strip, cellsize){
+  # spotlight survey detection probability on cells  
+  drate<- -log(1-prob)  # detection rate per spotlight km
+  atrisk<- which(occ[spotlocs[,1]] == 2) #occupied cells on spotlight transects
+  pfox<- spotlocs[atrisk,2]*strip/cellsize^2 #probability of fox in transect
+  trate<- spotlocs[atrisk,2] # length of spotlight transect in km 
+  ttdet<- -log(runif(length(atrisk)))/drate  # distance to next event
+  dtime<- ((ttdet <= trate) & (runif(length(atrisk)) <= pfox)) #fox in transect and detected 
+  sum(dtime)
+}
 #--------------------------------------------------------------------------------
 #' Rejection sampler for ABC estimation
 #'
@@ -424,28 +426,25 @@ ABC.reject<- function(i, x0, tol, priors, Data) {
       xc=ModelABC(thetac, Data)
       xr.sim<- sapply(xc$xr, sum)
       xs.sim<- sapply(xc$xs, sum)
+      xspot.sim<- sum(xc$xspot)
       xr0<- pre.pad(xr.sim,x0$xr)
       xs0<- pre.pad(xs.sim,x0$xs)
-      if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
-        xr.sim<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.road,Data$ncell)
-        xs.sim<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.shot,Data$ncell)
+      if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & xspot.sim < tol){
+        xr.sim<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.road,Data$ncell,1)
+        xs.sim<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.shot,Data$ncell,1)
         if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
           found<- TRUE
           theta<- thetac
           xr<- xr.sim
           xs<- xs.sim
+          xspot<- xc$xspot
           pop<- xc$pop
         }
       }
     }
   cat("completed particle ",i," for seq ",tol,"\n")
-  list(theta,xr,xs,pop)
+  list(theta,xr,xs,xspot,pop)
   }
-#-----------------------------------------------------------------
-match.locations<- function(x, nr, nc, locs, ncell) {
-  zz<- matchspatial(nr, nc, locs, x, ncell, 1)
-  sum(zz)
-}
 #------------------------------------------------------------------------
 #' Weighted rejection sampler for ABC estimation
 #'
@@ -485,23 +484,25 @@ ABC.weighted<- function(i, parms, x0, tol, VarCov, w, priors, Data) {
     thetac=propose.theta(thetao, VarCov, priors)     
     xc=ModelABC(thetac, Data) 
     xr.sim<- sapply(xc$xr, sum)
-    xs.sim<- sapply(xc$xs, sum)    
+    xs.sim<- sapply(xc$xs, sum) 
+    xspot.sim<- sum(xc$xspot)
     xr0<- pre.pad(xr.sim,x0$xr)
     xs0<- pre.pad(xs.sim,x0$xs)
-    if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
-      xr.sim<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.road,Data$ncell)
-      xs.sim<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.shot,Data$ncell)
+    if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & xspot.sim < tol){
+      xr.sim<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.road,Data$ncell,1)
+      xs.sim<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.shot,Data$ncell,1)
       if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
         found<- TRUE
         theta<- thetac
         xr<- xr.sim
         xs<- xs.sim
+        xspot<- xc$xspot
         pop<- xc$pop
       }
     } 
   }
   cat("completed particle ",i," for seq ",tol,"\n")
-  list(theta,xr,xs,pop)
+  list(theta,xr,xs,xspot,pop)
 }
 #--------------------------------------------------------------------------------
 #' Weights calculation for sequential Monte Carlo sampling

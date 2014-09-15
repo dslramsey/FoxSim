@@ -3,7 +3,7 @@
 \alias{PMC.appendFiles}
 \title{Append PMC model objects saved in rds files}
 \usage{
-PMC.appendFiles(x, TolName)
+PMC.appendFiles(x, TolName, fileout = NULL)
 }
 \arguments{
 \item{x}{A character vector of length at least 2 containing the relative
@@ -13,12 +13,16 @@ files should contain at least one similar tolerance value.}
 
 \item{TolName}{Character value indicating the tolerance value used for
 appending samples.}
+
+\item{fileout}{character value of the filename to write the appended object
+to a file. Default is \code{NULL} which does not write anything.}
 }
 \value{
 A list with elements of \code{x} appended.\cr
 \code{theta} - population parameter matrix.\cr
 \code{xr} - simulated road killed carcasses.\cr
 \code{xs} - simulated hunter killed carcasses.\cr
+\code{xspot} - simulated spotlight detections. \cr
 \code{pop} - population size trajectory for each year
 (number of occupied cells).
 }
@@ -33,6 +37,6 @@ filenm<- paste0("post",1:3,".rds") # vector of filenames
 PMC.appendFiles(filenm, "Tol2")
 }
 \seealso{
-\code{\link{PMC.sampler}} ,\code{\link{PMC.append}}
+\code{\link{PMC.sampler}}
 }
 
