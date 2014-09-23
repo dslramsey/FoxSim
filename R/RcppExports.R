@@ -13,7 +13,3 @@ foxsim <- function(nr, nc, ksize, x, roads, incpoints, Kern, parms) {
     .Call('FoxSim_foxsim', PACKAGE = 'FoxSim', nr, nc, ksize, x, roads, incpoints, Kern, parms)
 }
 
-foxscatsim <- function(nr, nc, ksize, x, roads, incpoints, Kern, parms) {
-    .Call('FoxSim_foxscatsim', PACKAGE = 'FoxSim', nr, nc, ksize, x, roads, incpoints, Kern, parms)
-}
-

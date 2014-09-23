@@ -68,25 +68,3 @@ BEGIN_RCPP
     return __sexp_result;
 END_RCPP
 }
-// foxscatsim
-List foxscatsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads, List incpoints, List Kern, List parms);
-RcppExport SEXP FoxSim_foxscatsim(SEXP nrSEXP, SEXP ncSEXP, SEXP ksizeSEXP, SEXP xSEXP, SEXP roadsSEXP, SEXP incpointsSEXP, SEXP KernSEXP, SEXP parmsSEXP) {
-BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< int >::type nr(nrSEXP );
-        Rcpp::traits::input_parameter< int >::type nc(ncSEXP );
-        Rcpp::traits::input_parameter< int >::type ksize(ksizeSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type roads(roadsSEXP );
-        Rcpp::traits::input_parameter< List >::type incpoints(incpointsSEXP );
-        Rcpp::traits::input_parameter< List >::type Kern(KernSEXP );
-        Rcpp::traits::input_parameter< List >::type parms(parmsSEXP );
-        List __result = foxscatsim(nr, nc, ksize, x, roads, incpoints, Kern, parms);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
-END_RCPP
-}

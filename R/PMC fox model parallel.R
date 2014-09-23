@@ -238,6 +238,85 @@ PMC.appendFiles<- function(x, TolName, fileout=NULL) {
   temp
 }
 #-----------------------------------------------------------------------
+#' Combine posterior samples of spatial maps of fox occupancy saved in rds files
+#'
+#' \code{Make.Raster} combines posterior samples from the saved file(s) of 
+#' spatial maps of fox occupancy produced by \code{PMC.sampler} into 
+#' a single raster file. Cell values are the occupancy probability calculated
+#' by averaging the presence/absence values for each cell over all the posterior
+#' samples.  The occupancy probabilities can be optionally smoothed using 
+#' a Gaussian window with bandwidth \code{bw}.    
+#' 
+#' @param X A character vector containing the relative or full paths
+#' and filenames for all saved files.  files should be binary 
+#' files saved from \code{PMC.sampler} (by setting \code{save.post}) and 
+#' should have filenames \code{pop#.rds} where \code{#} refers to the unique
+#' file identifer.
+#' @param rast raster habitat file that was used for simulating fox occupancy 
+#' in \code{PMC.sampler}
+#' @param years vector of years used for simulating fox occupancy
+#' @param bw bandwidth (in meters) used for smoothing the final occupancy map
+#' 
+#' @return A list of raster files of the same length as \code{years}.
+#' Each raster in the list has the same dimensions as \code{rast} 
+#' containing the estimates of the fox occupancy probability for each cell.  
+#' 
+#' @examples
+#' filenm<- paste0("pop",1:3,".rds") # vector of filenames
+#' Make.Raster(filenm, habitat, 1995:2014, 3000)
+#'  
+#' @seealso \code{\link{PMC.sampler}}
+#' 
+#' @export
+#' 
+Make.Raster<- function(X, rast, years, bw=NULL) {
+  library(raster)
+  if(!is.character(X)) stop("X must be a character vector of filenames")
+  N<- length(X)
+  tot.years<- length(years)
+  if(!is.null(bw)) wmat<- focalWeight(rast, bw, "Gauss")
+  
+  occ<- vector("list",tot.years)
+  count.rast<- rep(0,tot.years)
+  for(j in 1:N) {
+    cat("doing filename ",X[j]," file ",j, " of ",N,"\n")
+    sim.list<- readRDS(X[j])
+    n<- length(sim.list)
+    
+    for(i in 1:n) {    
+      nyears<- length(sim.list[[i]]) 
+      syear<- tot.years - nyears + 1  
+      
+      for(j in 1:nyears) {
+        tmprast<- raster(rast)    
+        r<- sim.list[[i]][[j]]
+        r<- ifelse(r==2,1,0)
+        dim(r)<- c(nd[1],nd[2])
+        values(tmprast)<- r
+        if(is.null(occ[[syear]])) occ[[syear]]<- tmprast
+        else occ[[syear]]<- overlay(occ[[syear]],tmprast,fun="sum")
+        count.rast[syear]<- count.rast[syear] + 1
+        syear<- syear + 1
+      }
+    }
+  }
+  
+  for(i in 1:tot.years) {
+    if(is.null(occ[[i]])) {
+      occ[[i]]<- raster(rast)
+      values(occ[[i]])<- NA
+      next
+    }
+    else{
+      occ[[i]]<- occ[[i]]/count.rast[i]
+      occ[[i]]<- focal(occ[[i]],w=wmat)
+    }
+  }
+  # tidy up
+  rm(sim.list)
+  list(occ=occ,counts=count.rast)
+}
+#-----------------------------------------------------------------------
 #' Model parser for PMC
 #'
 #' \code{ModelABC} is a convenience function that parses parameters
@@ -265,8 +344,8 @@ ModelABC<- function(parm, Data) {
   yintro<- round(parm[3:4] + syear)
   Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[5],proad=parm[6],pshot=parm[7],Ryear=parm[9])
   # Fox cellular automata C++ function from library(FoxSim) 
-  mod<- foxscatsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
-  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[8], 0.2, 3))
+  mod<- foxsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
+  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$nr, Data$spotlocs, parm[8], 0.2, 3))
   
   list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot)
   
@@ -384,12 +463,36 @@ match.locations<- function(x, nr, nc, locs, ncell, Val) {
   sum(zz)
 }
 #-----------------------------------------------------------------
-spotlight.survey<- function(occ, spotlocs, prob, strip, cellsize){
+#' Spotlight monitoring observation model
+#'
+#' \code{spotlight.survey} performs detection of foxes from spotlight
+#' surveys.  Simulated spotlight monitoring occurs on given cells
+#' with the probability of detection simulated using a random
+#' Poisson process with a given base detection rate.  A distance to first
+#' detection is then simulated and compared to the transect length 
+#' in the cell to determine realised detections.
+#'  
+#' @param occ fox occupancy map vector of size \code{nr} * \code{nc} 
+#' produced by \code{PMC.sampler}.
+#' @param nr number of rows in the map \code{occ}
+#' @param spotlocs matrix containing cell locations of spotlight
+#' transects with the first two columns containing the cell coordinates
+#' (row and column number) with the third column containing the distance of
+#' the spotlight transect in the cell (km).
+#' @param prob base spotlight detection probability (per km).
+#' @param strip The spatlight stripwidth
+#' @param cellsize the size of the cells in \code{occ} (km).
+#' 
+#' @return the total number of simulated detections
+#' 
+#' @seealso \code{\link{ModelABC}}
+#' @export
+spotlight.survey<- function(occ, nr, spotlocs, prob, strip, cellsize){
   # spotlight survey detection probability on cells  
   drate<- -log(1-prob)  # detection rate per spotlight km
-  atrisk<- which(occ[spotlocs[,1]] == 2) #occupied cells on spotlight transects
-  pfox<- spotlocs[atrisk,2]*strip/cellsize^2 #probability of fox in transect
-  trate<- spotlocs[atrisk,2] # length of spotlight transect in km 
+  atrisk<- which(occ[spotlocs[,1] + nr * (spotlocs[,2]-1)] == 2)  #occupied cells on spotlight transects
+  pfox<- spotlocs[atrisk,3]*strip/cellsize^2 #probability of fox in transect
+  trate<- spotlocs[atrisk,3] # length of spotlight transect in km 
   ttdet<- -log(runif(length(atrisk)))/drate  # distance to next event
   dtime<- ((ttdet <= trate) & (runif(length(atrisk)) <= pfox)) #fox in transect and detected 
   sum(dtime)
