@@ -7,19 +7,16 @@
 using namespace Rcpp;
 
 // neighbourhood
-NumericVector neighbourhood(int n, int m, NumericVector x, int ndist, NumericVector wdist, int state);
-RcppExport SEXP FoxSim_neighbourhood(SEXP nSEXP, SEXP mSEXP, SEXP xSEXP, SEXP ndistSEXP, SEXP wdistSEXP, SEXP stateSEXP) {
+NumericMatrix neighbourhood(NumericMatrix x, NumericMatrix wdist, int state);
+RcppExport SEXP FoxSim_neighbourhood(SEXP xSEXP, SEXP wdistSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< int >::type n(nSEXP );
-        Rcpp::traits::input_parameter< int >::type m(mSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
-        Rcpp::traits::input_parameter< int >::type ndist(ndistSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type wdist(wdistSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type wdist(wdistSEXP );
         Rcpp::traits::input_parameter< int >::type state(stateSEXP );
-        NumericVector __result = neighbourhood(n, m, x, ndist, wdist, state);
+        NumericMatrix __result = neighbourhood(x, wdist, state);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -27,19 +24,17 @@ BEGIN_RCPP
 END_RCPP
 }
 // matchspatial
-LogicalVector matchspatial(int n, int m, NumericMatrix locs, NumericVector x, int ncells, int state);
-RcppExport SEXP FoxSim_matchspatial(SEXP nSEXP, SEXP mSEXP, SEXP locsSEXP, SEXP xSEXP, SEXP ncellsSEXP, SEXP stateSEXP) {
+LogicalMatrix matchspatial(NumericMatrix locs, NumericMatrix x, int ncells, int state);
+RcppExport SEXP FoxSim_matchspatial(SEXP locsSEXP, SEXP xSEXP, SEXP ncellsSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< int >::type n(nSEXP );
-        Rcpp::traits::input_parameter< int >::type m(mSEXP );
         Rcpp::traits::input_parameter< NumericMatrix >::type locs(locsSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP );
         Rcpp::traits::input_parameter< int >::type ncells(ncellsSEXP );
         Rcpp::traits::input_parameter< int >::type state(stateSEXP );
-        LogicalVector __result = matchspatial(n, m, locs, x, ncells, state);
+        LogicalMatrix __result = matchspatial(locs, x, ncells, state);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
@@ -47,21 +42,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // foxsim
-List foxsim(int nr, int nc, int ksize, NumericVector x, NumericVector roads, List incpoints, List Kern, List parms);
-RcppExport SEXP FoxSim_foxsim(SEXP nrSEXP, SEXP ncSEXP, SEXP ksizeSEXP, SEXP xSEXP, SEXP roadsSEXP, SEXP incpointsSEXP, SEXP KernSEXP, SEXP parmsSEXP) {
+List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, List parms);
+RcppExport SEXP FoxSim_foxsim(SEXP xSEXP, SEXP roadsSEXP, SEXP incpointsSEXP, SEXP KernSEXP, SEXP parmsSEXP) {
 BEGIN_RCPP
     SEXP __sexp_result;
     {
         Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< int >::type nr(nrSEXP );
-        Rcpp::traits::input_parameter< int >::type nc(ncSEXP );
-        Rcpp::traits::input_parameter< int >::type ksize(ksizeSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type x(xSEXP );
-        Rcpp::traits::input_parameter< NumericVector >::type roads(roadsSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP );
+        Rcpp::traits::input_parameter< NumericMatrix >::type roads(roadsSEXP );
         Rcpp::traits::input_parameter< List >::type incpoints(incpointsSEXP );
         Rcpp::traits::input_parameter< List >::type Kern(KernSEXP );
         Rcpp::traits::input_parameter< List >::type parms(parmsSEXP );
-        List __result = foxsim(nr, nc, ksize, x, roads, incpoints, Kern, parms);
+        List __result = foxsim(x, roads, incpoints, Kern, parms);
         PROTECT(__sexp_result = Rcpp::wrap(__result));
     }
     UNPROTECT(1);
