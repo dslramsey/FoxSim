@@ -3,16 +3,12 @@
 \alias{match.locations}
 \title{Spatial Matching of cell locations}
 \usage{
-match.locations(x, nr, nc, locs, ncell, Val)
+match.locations(x, locs, ncell, Val)
 }
 \arguments{
 \item{x}{vector of size \code{nr} * \code{nc} representing cell
 locations that will be spatially matched against the locations
 in \code{locs}.}
-
-\item{nr}{number of rows in \code{x}}
-
-\item{nc}{number of columns in \code{x}}
 
 \item{locs}{Matrix specifying the row and column number of
 cell locations to match against.}

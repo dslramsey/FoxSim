@@ -344,8 +344,8 @@ ModelABC<- function(parm, Data) {
   yintro<- round(parm[3:4] + syear)
   Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[5],proad=parm[6],pshot=parm[7],Ryear=parm[9])
   # Fox cellular automata C++ function from library(FoxSim) 
-  mod<- foxsim(Data$nr, Data$nc, Data$kdim, Data$hab.vec, Data$road.vec, Data$ipoints, Data$kern.list, Parms)
-  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$nr, Data$spotlocs, parm[8], 0.2, 3))
+  mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Data$kern.list, Parms)
+  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[8], 0.2, 3))
   
   list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot)
   
@@ -443,8 +443,6 @@ pre.pad<- function(x, obs) {
 #' @param x vector of size \code{nr} * \code{nc} representing cell
 #' locations that will be spatially matched against the locations
 #' in \code{locs}.
-#' @param nr number of rows in \code{x}
-#' @param nc number of columns in \code{x}
 #' @param locs Matrix specifying the row and column number of
 #' cell locations to match against.
 #' @param ncell The spatial tolerance for specifying a match given
@@ -458,8 +456,8 @@ pre.pad<- function(x, obs) {
 #' 
 #' @seealso \code{\link{ABC.reject}}, \code{\link{ABC.weighted}}
 #' @export
-match.locations<- function(x, nr, nc, locs, ncell, Val) {
-  zz<- matchspatial(nr, nc, locs, x, ncell, Val)
+match.locations<- function(x, locs, ncell, Val) {
+  zz<- matchspatial(locs, x, ncell, Val)
   sum(zz)
 }
 #-----------------------------------------------------------------
@@ -474,7 +472,6 @@ match.locations<- function(x, nr, nc, locs, ncell, Val) {
 #'  
 #' @param occ fox occupancy map vector of size \code{nr} * \code{nc} 
 #' produced by \code{PMC.sampler}.
-#' @param nr number of rows in the map \code{occ}
 #' @param spotlocs matrix containing cell locations of spotlight
 #' transects with the first two columns containing the cell coordinates
 #' (row and column number) with the third column containing the distance of
@@ -487,10 +484,10 @@ match.locations<- function(x, nr, nc, locs, ncell, Val) {
 #' 
 #' @seealso \code{\link{ModelABC}}
 #' @export
-spotlight.survey<- function(occ, nr, spotlocs, prob, strip, cellsize){
+spotlight.survey<- function(occ, spotlocs, prob, strip, cellsize){
   # spotlight survey detection probability on cells  
   drate<- -log(1-prob)  # detection rate per spotlight km
-  atrisk<- which(occ[spotlocs[,1] + nr * (spotlocs[,2]-1)] == 2)  #occupied cells on spotlight transects
+  atrisk<- which(occ[cbind(spotlocs[,1],spotlocs[,2])] == 2)  #occupied cells on spotlight transects
   pfox<- spotlocs[atrisk,3]*strip/cellsize^2 #probability of fox in transect
   trate<- spotlocs[atrisk,3] # length of spotlight transect in km 
   ttdet<- -log(runif(length(atrisk)))/drate  # distance to next event
@@ -533,8 +530,8 @@ ABC.reject<- function(i, x0, tol, priors, Data) {
       xr0<- pre.pad(xr.sim,x0$xr)
       xs0<- pre.pad(xs.sim,x0$xs)
       if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & xspot.sim < tol){
-        xr.sim<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.road,Data$ncell,1)
-        xs.sim<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.shot,Data$ncell,1)
+        xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
+        xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
         if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
           found<- TRUE
           theta<- thetac
@@ -592,8 +589,8 @@ ABC.weighted<- function(i, parms, x0, tol, VarCov, w, priors, Data) {
     xr0<- pre.pad(xr.sim,x0$xr)
     xs0<- pre.pad(xs.sim,x0$xs)
     if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & xspot.sim < tol){
-      xr.sim<- sapply(xc$xr, match.locations,Data$nr,Data$nc,Data$carcass.road,Data$ncell,1)
-      xs.sim<- sapply(xc$xs, match.locations,Data$nr,Data$nc,Data$carcass.shot,Data$ncell,1)
+      xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
+      xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
       if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
         found<- TRUE
         theta<- thetac

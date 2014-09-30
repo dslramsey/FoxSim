@@ -3,13 +3,11 @@
 \alias{spotlight.survey}
 \title{Spotlight monitoring observation model}
 \usage{
-spotlight.survey(occ, nr, spotlocs, prob, strip, cellsize)
+spotlight.survey(occ, spotlocs, prob, strip, cellsize)
 }
 \arguments{
 \item{occ}{fox occupancy map vector of size \code{nr} * \code{nc}
 produced by \code{PMC.sampler}.}
-
-\item{nr}{number of rows in the map \code{occ}}
 
 \item{spotlocs}{matrix containing cell locations of spotlight
 transects with the first two columns containing the cell coordinates
