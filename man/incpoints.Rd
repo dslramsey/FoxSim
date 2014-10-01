@@ -2,13 +2,15 @@
 \name{incpoints}
 \alias{incpoints}
 \title{List of introduction cells for foxes in Tasmania.}
-\format{A list of length 3 with each element consisting of
-a vector of cell numbers representing possible introduction
-points.}
+\format{A list of length 2 with elements consisting of
+a list of length 3 containing a matrix of cell locations, one
+for each possible introduction point.}
 \description{
-A list of length 3 representing the possible introduction points
-(cellnumbers) for foxes in Tasmania based on rumoured introductions
-in Longford, Oatlands and St Helens.  Cell numbers are all habitat
-cells within 20 km of each location.#'
+A list of length 2 representing the possible introduction points
+(cell references) for foxes in Tasmania based on possible introductions
+through the ports at Burnie, Devonport and Hobart as well as rumoured
+introductions in Longford, Oatlands and St Helens.  Each element is a matrix
+of cell references (row and column number) of cells within 3 km of the Port
+locations and 30 km of the rumoured introductions.
 }
 

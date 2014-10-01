@@ -6,7 +6,7 @@
 spotlight.survey(occ, spotlocs, prob, strip, cellsize)
 }
 \arguments{
-\item{occ}{fox occupancy map vector of size \code{nr} * \code{nc}
+\item{occ}{fox occupancy map matrix
 produced by \code{PMC.sampler}.}
 
 \item{spotlocs}{matrix containing cell locations of spotlight

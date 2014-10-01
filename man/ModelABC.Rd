@@ -13,10 +13,10 @@ for use in parameter estimation via \code{PMS.sampler}.}
 }
 \value{
 a list with elements
-\code{xr} - simulated road killed carcasses,
-\code{xs} - simulated hunter killed carcasses,
-\code{pop} - population size trajectory for each year
-(number of occupied cells)
+\code{xr} - matrix of simulated road killed carcasses,
+\code{xs} - matrix of simulated hunter killed carcasses,
+\code{pop} - matrix of fox occupancy,
+\code{xspot} - number of fox detections from spotlight surveys
 }
 \description{
 \code{ModelABC} is a convenience function that parses parameters

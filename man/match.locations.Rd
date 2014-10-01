@@ -6,9 +6,8 @@
 match.locations(x, locs, ncell, Val)
 }
 \arguments{
-\item{x}{vector of size \code{nr} * \code{nc} representing cell
-locations that will be spatially matched against the locations
-in \code{locs}.}
+\item{x}{Habitat matrix of cell locations that will be spatially matched
+against the locations in \code{locs}.}
 
 \item{locs}{Matrix specifying the row and column number of
 cell locations to match against.}
@@ -19,7 +18,7 @@ as the radial distance in cell units.}
 \item{Val}{integer representing the cell value used for matching}
 }
 \value{
-a logical vector of size \code{nr} * \code{nc} with values
+a logical matrix with values
 set to \code{TRUE} for cell locations in \code{x} that are within
  \code{ncells} distance of locations given in \code{locs}
  (i.e. within \code{ncells} of \code{x[locs[,1] + nr * locs[,2]]}

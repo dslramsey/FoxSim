@@ -328,10 +328,10 @@ Make.Raster<- function(X, rast, years, bw=NULL) {
 #' @param Data List of ancillary data required by \code{foxsim}.
 #' 
 #' @return a list with elements 
-#' \code{xr} - simulated road killed carcasses,
-#' \code{xs} - simulated hunter killed carcasses,
-#' \code{pop} - population size trajectory for each year 
-#' (number of occupied cells)
+#' \code{xr} - matrix of simulated road killed carcasses,
+#' \code{xs} - matrix of simulated hunter killed carcasses,
+#' \code{pop} - matrix of fox occupancy,
+#' \code{xspot} - number of fox detections from spotlight surveys 
 #'  
 #' @seealso \code{\link{propose.theta}}
 #' @export
@@ -440,16 +440,15 @@ pre.pad<- function(x, obs) {
 #'  spatial matching of simulated observations with observed locations. 
 #'  Wrapper for the C++ function \code{matchspatial}.
 #'  
-#' @param x vector of size \code{nr} * \code{nc} representing cell
-#' locations that will be spatially matched against the locations
-#' in \code{locs}.
+#' @param x Habitat matrix of cell locations that will be spatially matched 
+#' against the locations in \code{locs}.
 #' @param locs Matrix specifying the row and column number of
 #' cell locations to match against.
 #' @param ncell The spatial tolerance for specifying a match given
 #' as the radial distance in cell units.
 #' @param Val integer representing the cell value used for matching
 #' 
-#' @return a logical vector of size \code{nr} * \code{nc} with values 
+#' @return a logical matrix with values 
 #' set to \code{TRUE} for cell locations in \code{x} that are within
 #'  \code{ncells} distance of locations given in \code{locs} 
 #'  (i.e. within \code{ncells} of \code{x[locs[,1] + nr * locs[,2]]} 
@@ -470,7 +469,7 @@ match.locations<- function(x, locs, ncell, Val) {
 #' detection is then simulated and compared to the transect length 
 #' in the cell to determine realised detections.
 #'  
-#' @param occ fox occupancy map vector of size \code{nr} * \code{nc} 
+#' @param occ fox occupancy map matrix 
 #' produced by \code{PMC.sampler}.
 #' @param spotlocs matrix containing cell locations of spotlight
 #' transects with the first two columns containing the cell coordinates
