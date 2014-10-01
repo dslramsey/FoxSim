@@ -14,29 +14,27 @@ NULL
 #------------------------------------------------------------
 #' Road network for Tasmania.
 #'
-#' A vector representing the main road network for Tasmania 
+#' A matrix representing the main road network for Tasmania 
 #' on a 3 km raster suitable for input into \code{foxsim}.  Cell values
 #' are coded (1) road presence, (0) road absence
 #' 
 #' 
-#' @format A vector of size 12084 created from a raster file
-#' by calling \code{as.double(as.matrix(raster))}\cr
-#' The dimensions of the original raster are stored in the 
-#' \code{dims} attibute (accessed by \code{attributes(roadvec)}
+#' @format A matrix of size 114 x 106 created from a raster file
+#' by calling \code{as.matrix(raster)}\cr
 #' @name roadmat
 NULL
 #-------------------------------------------------------------
 #' List of introduction cells for foxes in Tasmania.
 #'
 #' A list of length 2 representing the possible introduction points
-#' (cell references) for foxes in Tasmania based on possible introductions
+#' (cell coordinates) for foxes in Tasmania based on possible introductions
 #' through the ports at Burnie, Devonport and Hobart as well as rumoured 
 #' introductions in Longford, Oatlands and St Helens.  Each element is a matrix
-#' of cell references (row and column number) of cells within 3 km of the Port
-#' locations and 30 km of the rumoured introductions.  
+#' of cell coordinates (row and column number) of cells within 3 km of the Port
+#' locations and 30 km of Longford, Oatlands and St Helens.  
 #' 
 #' @format A list of length 2 with elements consisting of 
-#' a list of length 3 containing a matrix of cell locations, one
+#' a list of length 3 containing a matrix of cell coordinates, one
 #' for each possible introduction point.
 #' @name incpoints
 NULL
@@ -53,4 +51,17 @@ NULL
 #' Years are numbered from 2001.
 #' 
 #' @name carcass_obs
+NULL
+#-------------------------------------------------------------
+#' Locations of Fox carcass discoveries in Tasmania.
+#'
+#' A list of length 2 representing the locations (cell row and
+#' column numbers) of fox carcasses discovered in Tasmania 
+#' since 2001 either through road kills or hunter kills.  
+#' 
+#' @format A list of length 2 with the following elements\cr
+#' xr - matrix of cell coordinates of road killed carcasses\cr 
+#' xs - matrix of cell coordinates of hunter killed carcasses\cr
+#' 
+#' @name carcass_locs
 NULL
