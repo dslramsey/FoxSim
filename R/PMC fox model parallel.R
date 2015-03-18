@@ -262,15 +262,14 @@ PMC.appendFiles<- function(x, TolName, fileout=NULL) {
 #' containing the estimates of the fox occupancy probability for each cell.  
 #' 
 #' @examples
-#' filenm<- paste0("pop",1:3,".rds") # vector of filenames
-#' Make.Raster(filenm, habitat, 1995:2014, 3000)
+#' #filenm<- paste0("pop",1:3,".rds") # vector of filenames
+#' #Make.Raster(filenm, habitat, 1995:2014, 3000)
 #'  
 #' @seealso \code{\link{PMC.sampler}}
 #' 
 #' @export
 #' 
 Make.Raster<- function(X, rast, years, bw=NULL) {
-  library(raster)
   if(!is.character(X)) stop("X must be a character vector of filenames")
   N<- length(X)
   tot.years<- length(years)

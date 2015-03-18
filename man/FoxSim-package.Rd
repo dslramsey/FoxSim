@@ -28,28 +28,32 @@ Maintainer: Dave Ramsey <david.ramsey@depi.vic.gov.au>
 Beaumont, M. A., Cornuet, J., Marin, J., and Robert, C. P. (2009) Adaptive approximate Bayesian computation. Biometrika,(96),pp 983-990. 
 }
 \examples{
-data(habitatvec)
-data(roadvec)
+data(habitatmat)
+data(roadmat)
 data(incpoints)
 data(carcass_obs)
-nd<- attributes(habitatvec)$dims
+data(carcass_locs)
+data(spotlocs)
 
 kern1<- kernel2D(eps=3, kfun="gamma", shape=1, scale=3, max.disp=30)
 kern2<- kernel2D(eps=3, kfun="uniform", sigma=30, max.disp=30)
 
 kern<- list(kern1, kern2)
-kdim<- dim(kern1)[1] 
 
-MyData<- list(nr=nd[1],nc=nd[2],kdim=kdim, hab.vec=habitatvec, road.vec=roadvec,  
-              ipoints=incpoints, kern.list=kern, eyear=2014)
+MyData<- list(habitat.mat=habitatmat,road.mat=roadmat,ipoints=incpoints, kern.list=kern, syear=1995, eyear=2014, carcass.road=carcass_locs$xr, carcass.shot=carcass_locs$xs, spotlocs=spotlocs, ncell=10)
 
-priors<- list(list("uniform",-3.49,3.49),
-              list("beta",1,1),
-              list("beta",17,83),
-              list("beta",17,83),
-              list("uniform",0.1,2))
+
+priors<-list(list("uniform",-0.5,2.49),
+             list("uniform",-0.5,2.49),
+             list("uniform",-0.5,11.49),
+             list("uniform",-0.5,6.49),
+             list("beta",1,1),
+             list("beta",17,83),
+             list("beta",17,83),
+             list("beta",10,90),
+             list("uniform",0.1,2))
 
 Tol<- c(6,5)
 
-fit<- PMC.sampler(N=10, carcass_obs, Tol, priors, MyData, parallel=FALSE)
+#fit<- PMC.sampler(N=10, carcass_obs, Tol, priors, MyData, parallel=FALSE)
 }

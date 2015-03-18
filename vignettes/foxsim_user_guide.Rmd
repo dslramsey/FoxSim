@@ -5,7 +5,9 @@
 # FoxSim users guide
 
 ## Dave Ramsey
-### Friday, August 15, 2014
+
+###Friday, October 3rd, 2014
+
 -------------------------------------------
 
 FoxSim is an **R** package for simulating an invading fox population. The simulation model is based on a cellular automata over a spatial map (raster) with cells of a given resolution.  The model is designed to be fitted to observations using Approximate Bayesian Computational methods and the package includes a sequential Monte Carlo sampler to undertake the ABC computations.  Currently the model is set up to simulate an invading fox population in Tasmania using a habitat raster with 3 km cell resolution.  Habitat cells are coded as (1) - suitable habitat, (0) - unsuitable habitat or (-1) - water (ocean).
@@ -27,24 +29,31 @@ assuming the package builds OK, you should be good to go. Now load the `FoxSim` 
 
 ```{r}
 library(FoxSim, quietly=T)
-data(habitatvec)
-data(roadvec)
+data(habitatmat)
+data(roadmat)
 
 ```
-Both `habitatvec` and `roadvec` are Vector objects but each contain an attribute `dims` containing the dimensions of the original raster matrix from which they were created.  This can be accessed by
+Both `habitatmat` and `roadmat` are Matrix objects with dimensions 114 rows by 106 columns representing a fox habitat suitability raster and road raster for Tasmania, respectively, both using 3 km cells.
 
-```{r}
-nd<- attributes(habitatvec)$dims
-nd
-```
-
-which shows the original raster had dimensions of 114 rows and 106 columns.  Now read in the carcass observations.
+Now read in the carcass observations and locations.
 ```{r}
 data(carcass_obs)
+data(carcass_locs)
 carcass_obs
+carcass_locs
 ```
 
-Here the vector `xr` contains the number of road killed foxes discovered each year starting from 2001 and ending in 2014 (a little presumptuous as 2014 is only a little more than half over) and `xs` contains the number of hunter killed carcasses over the same period.
+For the `carcass_obs` object, the vector `xr` contains the number of road killed foxes discovered each year starting from 2001 and ending in 2014 (a little presumptuous as 2014 is only a little more than half over) and `xs` contains the number of hunter killed carcasses over the same period.
+
+For the `carcass_locs` object, `xr` contains the locations (matrix cell coordinates) of the road killed carcasses and `xs` contains the equivalent for the hunter killed carcass.
+
+The other observation model we have access to are spotlight transects located over 738 cells in Tasmania.  These transects are surveyed annually since the early 1990s and no foxes have been detected to date.  The locations of the spotlight transects can be read in as follows
+```{r}
+data(spotlocs)
+#spotlocs
+```
+
+which gives the cell coordinates for a spotlight transects (or portion thereof) as well as the length of the transect in the cell (km).
 
 
 To run the `foxsim` cellular automata model we must also specifiy two dispersal kernels.  These are used to define two possible dispersal modes and are randomly selected from in the model with equal probability.  Here we will specifiy both a **local** and **vagrant** dispersal modes with a maximum dispersal distance of 30 km.  These are then place in a list for input into `foxsim`.
@@ -61,8 +70,6 @@ kern2<- kernel2D(eps=3, kfun="uniform", sigma=30, max.disp=30)
 
 kern<- list(kern1, kern2)
 
-kdim<- dim(kern1)[1] # save dimensions of kernel
-
 ```
 
 We can visualise these kernels using the following 
@@ -75,27 +82,26 @@ image(x, y, kern2, col=terrain.colors(50),main="vagrant dispersal kernel")
 
 ```
 
-Finally, we require some introduction points for foxes in the model to begin the invasion process.  The rumoured introductions were said to have occurred at Longford, Oatlands and St Helens.   We will introduce foxes simultaneously at these 3 points and allow for some uncertainty in the actual release locations by randomly selecting a habitat cell within 20 km of each of these locations to use as the release cell.  Cells satisfying these conditions are available in the data file `incpoints`
+Finally, we require some introduction points for foxes in the model to begin the invasion process.  The rumoured introductions were said to have occurred at Longford, Oatlands and St Helens while the port introductions could possible occur at Burnie, Devonport or Hobart.   We introduce foxes simultaneously at one port location and one rumoured location and allow for some uncertainty in the actual rumoured release by randomly selecting a habitat cell within 30 km of the selected rumoured location to use as the release cell.  Cells satisfying these conditions are available in the data file `incpoints`
 
 ```{r}
 data(incpoints)
-incpoints
+#incpoints
 ```
 
-which is a list of length 3 containing a vector of cell numbers within 20k of each location.  The `foxsim` model will randomly select one of these cells from each of the three locations to use as the release point for foxes.
+which is a list of length 2 with each element containing a list of of length 3 comprising a matrix of cell coordinates, one for each port introduction (list element 1) and rumoured introduction (list element 2). The `foxsim` model will randomly select one of these cells from one port and one rumored location to use as the release point for foxes.  The introduction location that  is used is a probability that is updated by the model  
 
 Now we are almost ready to run the model.  The final requirements of the `foxsim` model are some parameters governing the population and obervation processes as well as start and end times. These need to be supplied in a `list` with specific name attributes and we will construct some dummy parameters here to illustrate.
 
 ```{r}
-Parms<- list(syear=1998,eyear=2013,psurv=0.7,Ryear=1.1,proad=0.2,pshot=0.1)
+Parms<- list(pintro=c(2,2),yintro=c(1998,2000),syear=1995,eyear=2014,psurv=0.7,Ryear=1.1,proad=0.2,pshot=0.1)
 
 # Now do a single run of the model
+mod<- foxsim(habitatmat, roadmat, incpoints, kern, Parms)
 
-foxsim(nd[1], nd[2], kdim, habitatvec, roadvec, incpoints, kern, Parms)
-       
 ```
 
-`foxsim` produces a list containing 3 vectors of length `length(syear:eyear)`.  The first element of the list contains the number of road killed fox carcasses each year predicted by the model.  The second element contains the predicted hunter killed carcasses each year and the third contains the predicted number of occupied cells each year.
+`foxsim` produces a list of length 3 with each element containing a list of `length(syear:eyear)` containing matrices of the same dimension as `habitatmap`. The first element of the list contains the locations of road killed fox carcasses each year predicted by the model.  The second element contains the predicted locations of hunter killed carcasses each year and the third contains the predicted locations of foxes (occupied cells) each year.
 
 `TODO`  change C++ code to give the list elements names attributes.
 
@@ -106,29 +112,34 @@ The SMC algorithm is contained in the function `PMC.sampler` (for population Mon
 First we construct the fixed data.  This contains all the info required by `foxsim` in a list and can be constructed directly
 
 ```{r}
-MyData<- list(nr=nd[1],nc=nd[2],kdim=kdim, hab.vec=habitatvec, road.vec=roadvec,  
-              ipoints=incpoints, kern.list=kern, eyear=2014)
+MyData<- list(habitat.mat=habitatmat,road.mat=roadmat,ipoints=incpoints, kern.list=kern, syear=1995, eyear=2014, carcass.road=carcass_locs$xr, carcass.shot=carcass_locs$xs, spotlocs=spotlocs, ncell=10)
+
 
 ```
 
-Since the end year of the observations is fixed at 2014, we place it in `MyData` as it is not a parameter to be estimated.  However the fox introduction year `syear` is unknown and is allowed to be estimated by the model.  Here we allow `syear` to take values between 1995 and 2001.
+Since the start and end years for the simulations are fixed, we place them in `MyData` as they are not parameters to be estimated.  Both the fox introduction year `yintro` and introduction location `pintro` for either a port or rumoured introduction are unknown and are allowed to be estimated by the model.  Here we allow `yintro` to take values between 1995 and 2006 for a port introduction and 1995 and 2001 for a rumoured introduction .
 
-We now need some prior distributions for the parameters in the model.  These are listed in the order introduction year `syear`, cell survival `psurv`, road kill probability `proad`, hunter kill probability `pshot` and cell reproductive rate `Ryear`.
+We now need some prior distributions for the parameters in the model.  These are listed in the order introduction location `pintro` (length 2), introduction year `yintro` (length 2), cell survival `psurv`, road kill probability `proad`, hunter kill probability `pshot` and cell reproductive rate `Ryear`.
 
 
 ```{r}
-priors<- list(list("uniform",-3.49,3.49),
-              list("beta",1,1),
-              list("beta",17,83),
-              list("beta",17,83),
-              list("uniform",0.1,2))
+priors<-list(list("uniform",-0.5,2.49),
+             list("uniform",-0.5,2.49),
+             list("uniform",-0.5,11.49),
+             list("uniform",-0.5,6.49),
+             list("beta",1,1),
+             list("beta",17,83),
+             list("beta",17,83),
+             list("beta",10,90),
+             list("uniform",0.1,2))
 ```
 
-Here we transform the prior for `syear` to be a number on the real line between -3.49, 3.49 with 0 corresponding to the year 1998.  This facilitates easier sampling by the SMC algorithm with any value proposed by the model, say `val`, transformed into the integer number for `syear` using `round(val + 1998)`.
+Here we transform the prior for `pintro` to be a number on the real line between -0.5, 2.49.  This facilitates easier sampling by the SMC algorithm with any value proposed by the model, say `val`, transformed into the integer number for `pintro` using `round(val)`.  Hence `pintro` can take values of 0, 1 or 2 corresponding to three introduction locations.  Similar transformations are undertaken for `yintro`.
 
 Finally we can now do some SMC updating by specifying some tolerances and running the following commands
 
 ```{r,cache=TRUE}
+## NOT RUN
 Tol<- c(5,4)
 
 fit<- PMC.sampler(N=10, carcass_obs, Tol, priors, MyData, parallel=F)

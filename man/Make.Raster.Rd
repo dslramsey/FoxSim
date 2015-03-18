@@ -33,8 +33,8 @@ samples.  The occupancy probabilities can be optionally smoothed using
 a Gaussian window with bandwidth \code{bw}.
 }
 \examples{
-filenm<- paste0("pop",1:3,".rds") # vector of filenames
-Make.Raster(filenm, habitat, 1995:2014, 3000)
+#filenm<- paste0("pop",1:3,".rds") # vector of filenames
+#Make.Raster(filenm, habitat, 1995:2014, 3000)
 }
 \seealso{
 \code{\link{PMC.sampler}}
