@@ -2,6 +2,7 @@
 
 #include <RcppArmadilloExtensions/sample.h>
 
+
 using namespace Rcpp;
 
 int imax(int x, int y) {
@@ -137,8 +138,7 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
   IntegerVector yintro = as<IntegerVector>(parms["yintro"]);
   int startyear = as<int>(parms["syear"]);
   int endyear = as<int>(parms["eyear"]);  
-  int iyear[2];
-  
+    
   int occupied = 2;
   int suitable = 1;
   int nyears = endyear - startyear + 1;
@@ -154,8 +154,9 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
   List poploc(nyears);
   IntegerVector nkern = seq_len(Kern.size());
   int iptsize = incpoints.size();
-  int relpoint[2];
-  NumericMatrix relmat(2,2);
+  IntegerVector iyear(iptsize);
+  IntegerVector relpoint(iptsize);
+  NumericMatrix relmat(iptsize,iptsize);
   
   int kern_no = RcppArmadillo::sample(nkern, 1, FALSE)[0] - 1;
   NumericMatrix dkern = as<NumericMatrix>(Kern[kern_no]);
@@ -172,14 +173,14 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
      IntegerVector zz = seq_len(ip.nrow()) - 1;
      relpoint[i] = RcppArmadillo::sample(zz, 1, FALSE)[0];
      relmat(i,_) = ip(relpoint[i],_);
+     iyear[i] = nyears - (endyear-yintro[i]) - 1;
   }
     
-  iyear[0] = nyears - (endyear-yintro[0]) - 1;
-  iyear[1] = nyears - (endyear-yintro[1]) - 1;
   
   for(int j = 0; j < nyears; j++) {
-    if(j == iyear[0]) xone(relmat(0,0)-1,relmat(0,1)-1) = occupied;  // -1 to correspond to R
-    if(j == iyear[1]) xone(relmat(1,0)-1,relmat(1,1)-1) = occupied;
+    for(int k = 0; k < iptsize; k++) {
+      if(j == iyear[k]) xone(relmat(k,0)-1,relmat(k,1)-1) = occupied;  // -1 to correspond to R
+    }
     xpop = advancepop(xone,roads,xhunt,dkern,parms);
     xone = as<NumericMatrix>(xpop[0]);
     NumericMatrix pop(clone(xone));  //make deep copy

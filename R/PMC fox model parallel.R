@@ -272,6 +272,7 @@ PMC.appendFiles<- function(x, TolName, fileout=NULL) {
 Make.Raster<- function(X, rast, years, bw=NULL) {
   if(!is.character(X)) stop("X must be a character vector of filenames")
   N<- length(X)
+  nd<- dim(rast)[c(1,2)]
   tot.years<- length(years)
   if(!is.null(bw)) wmat<- focalWeight(rast, bw, "Gauss")
   
@@ -428,6 +429,7 @@ distm<- function(xstar, x0) {
 #' @export
 #' 
 pre.pad<- function(x, obs) {
+  # pad observations with zeros
   nzeros<- length(x) - length(obs)
   c(rep(0,nzeros),obs)
 }
