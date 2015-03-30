@@ -50,7 +50,9 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
     xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
     xspot.sim<- t(sapply(xx[4,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-    poploc<- xx[5,]
+    pscats.sim<- t(sapply(xx[5,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+    dscats.sim<- t(sapply(xx[6,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+    poploc<- xx[7,]
     pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
      
     duration = difftime(Sys.time(), start, units = "secs")
@@ -59,7 +61,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
   
     w<- rep(1/N,N) 
     
-    post.list[[paste0("Tol",SeqTol[1])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, pop=pop, weights=w, elapsed=duration)
+    post.list[[paste0("Tol",SeqTol[1])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, pscats=pscats.sim, dscats=dscats.sim, pop=pop, weights=w, elapsed=duration)
   
     if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[1],".rds"))
     if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",SeqTol[1],".rds"))
@@ -84,13 +86,15 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
       xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
       xspot.sim<- t(sapply(xx[4,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-      poploc<- xx[5,]
+      pscats.sim<- t(sapply(xx[5,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+      dscats.sim<- t(sapply(xx[6,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
+      poploc<- xx[7,]
       pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
       w<- calc.weights(theta, thetaold, wold, VarCov, priors)
       
       duration = difftime(Sys.time(), start, units = "secs")
       
-      post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, pop=pop, weights=w, elapsed=duration)
+      post.list[[paste0("Tol",SeqTol[j])]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, pscats=pscats.sim, dcats=dscats.sim, pop=pop, weights=w, elapsed=duration)
       if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",SeqTol[j],".rds")) 
       if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",SeqTol[j],".rds"))
       
@@ -342,13 +346,13 @@ ModelABC<- function(parm, Data) {
   eyear<- Data$eyear 
   pintro<- round(parm[1:2])
   yintro<- round(parm[3:4] + syear)
-  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[5],proad=parm[6],pshot=parm[7],Ryear=parm[9])
+  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[5],Ryear=parm[6],proad=parm[7],pshot=parm[8])
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Data$kern.list, Parms)
-  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[8], 0.2, 3))
-  
-  list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot)
-  
+  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[9], 0.2, 3))
+  xscatp<- mapply(scat.survey, mod[[3]], Data$psearch, MoreArgs=list(drate=parm[10],parms=Data$scat.pars),SIMPLIFY=FALSE)
+  xscatd<- mapply(scat.survey, mod[[3]], Data$dsearch, MoreArgs=list(drate=parm[11],parms=Data$scat.pars),SIMPLIFY=FALSE)
+  list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot,xscatp=xscatp,xscatd=xscatd)
 }
 #-------------------------------------------------------------------------
 #' Dispersal kernel 
@@ -461,6 +465,77 @@ match.locations<- function(x, locs, ncell, Val) {
   sum(zz)
 }
 #-----------------------------------------------------------------
+#' Expected scats calculations
+#'
+#' \code{expected.scats} calculates the number of scats that are
+#' expected to be available for detection within the home range of
+#' a single fox. This is calculated as the equilibrium value 
+#' between scat production and degradation.
+#' Used by \code{scat.survey}.
+#'  
+#' @param pr scat production rate given as No. of scats/day 
+#' @param dr scat degradation rate vector where \code{dr[1]}
+#' is the (log) mean degradation rate per day and \code{dr[2]} is
+#' the (log) standard deviation.
+#' @param lf estimate of the proportion of scats that are 
+#' deposited on linear features.
+#' 
+#' @return the (integer) number of scats 
+#' 
+#' @seealso \code{\link{scat.survey}}
+#' @export
+expected.scats<- function(pr, dr, lf) {
+  b<- exp(rnorm(1,dr[1],dr[2])) # degradation rate
+  a<- rpois(1,pr) # scat production per fox per day
+  exp.scats<- -a*exp(-b*Inf)/b - (-a/b) # arbitrary long time 
+  as.integer(exp.scats * lf) # this is expected scats per day
+}
+#-----------------------------------------------------------------
+#' Scat survey monitoring observation model
+#'
+#' \code{scat.survey} performs detection of foxes from scat
+#' surveys.  Simulated scat monitoring occurs on given cells
+#' with the probability of detection given as a exponential
+#' function of search distance with a given base detection rate. 
+#' If the cell is occupied by a fox, then the number of scats
+#' available for detection is given by \code{expected.scats}.
+#'  
+#' @param occ fox occupancy map matrix 
+#' produced by \code{PMC.sampler}.
+#' @param scatlocs matrix containing locations of cells subject to
+#' scat searches with the first two columns containing the cell 
+#' coordinates (row and column number) with the third column 
+#' containing the transect distance (km).
+#' @param drate base scat detection probability (per km).
+#' @param parms parameters for calculating the expected number
+#' of scats available for detection (see \code{expected.scats}).
+#' 
+#' @return matrix of the same dimension as \code{occ} with 1 
+#' indicating cells with detected scats and 0 otherwise.
+#' 
+#' @seealso \code{\link{expected.scats}}, \code{\link{ModelABC}}
+#' @export
+scat.survey<- function(occ, scatlocs, drate, parms) {
+  # Scat observation process
+  # occ is occupancy status, scatlocs is the coordinates of the search effort
+  # drate is the (log) per unit detection rate, parms are the parameters of
+  # scat generation process
+  atrisk<- which(occ[cbind(scatlocs[,1],scatlocs[,2])] == 2) 
+  n<- length(atrisk)
+  occ[,]<- 0  # set value of all cells to zero
+  if(n > 0) { 
+    exp.scats<- replicate(n, expected.scats(pr=parms$pr, dr=parms$dr, lf=parms$lf))
+    slength<- scatlocs[atrisk,3]
+    prob<- 1-exp(-exp(drate)*slength)
+    dscats<- rbinom(n, exp.scats, prob)
+    nonzero<- dscats > 0
+    scoord<- matrix(scatlocs[atrisk[nonzero],c(1,2)],ncol=2)
+    #occ[scoord[,1],scoord[,2]]<- dscats[nonzero]
+    occ[scoord[,1],scoord[,2]]<- 1
+  }
+  occ
+}
+#-----------------------------------------------------------------
 #' Spotlight monitoring observation model
 #'
 #' \code{spotlight.survey} performs detection of foxes from spotlight
@@ -527,17 +602,27 @@ ABC.reject<- function(i, x0, tol, priors, Data) {
       xr.sim<- sapply(xc$xr, sum)
       xs.sim<- sapply(xc$xs, sum)
       xspot.sim<- sum(xc$xspot)
+      pscat.sim<- sapply(xc$xscatp,sum)
+      dscat.sim<- sapply(xc$xscatd,sum)
       xr0<- pre.pad(xr.sim,x0$xr)
       xs0<- pre.pad(xs.sim,x0$xs)
-      if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & xspot.sim < tol){
+      xscp0<- pre.pad(pscat.sim,x0$pscat)
+      xscd0<- pre.pad(dscat.sim,x0$dscat)
+      if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & xspot.sim < tol 
+         & distm(pscat.sim,xscp0) < tol & distm(dscat.sim,xscd0) < tol){
         xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
         xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
-        if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
+        pscat.sim<- sapply(xc$xscatp, match.locations,Data$scats.p,Data$ncell,1)
+        dscat.sim<- sapply(xc$xscatd, match.locations,Data$scats.d,Data$ncell,1)
+        if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & 
+           distm(pscat.sim,xscp0) < tol & distm(dscat.sim,xscd0) < tol){
           found<- TRUE
           theta<- thetac
           xr<- xr.sim
           xs<- xs.sim
           xspot<- xc$xspot
+          pscats<- pscat.sim
+          dscats<- dscat.sim
           pop<- xc$pop
         }
       }
@@ -584,19 +669,29 @@ ABC.weighted<- function(i, parms, x0, tol, VarCov, w, priors, Data) {
     thetac=propose.theta(thetao, VarCov, priors)     
     xc=ModelABC(thetac, Data) 
     xr.sim<- sapply(xc$xr, sum)
-    xs.sim<- sapply(xc$xs, sum) 
+    xs.sim<- sapply(xc$xs, sum)
     xspot.sim<- sum(xc$xspot)
+    pscat.sim<- sapply(xc$xscatp,sum)
+    dscat.sim<- sapply(xc$xscatd,sum)
     xr0<- pre.pad(xr.sim,x0$xr)
     xs0<- pre.pad(xs.sim,x0$xs)
-    if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & xspot.sim < tol){
+    xscp0<- pre.pad(pscat.sim,x0$pscat)
+    xscd0<- pre.pad(dscat.sim,x0$dscat)
+    if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & xspot.sim < tol 
+       & distm(pscat.sim,xscp0) < tol & distm(dscat.sim,xscd0) < tol){
       xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
       xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
-      if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1){
+      pscat.sim<- sapply(xc$xscatp, match.locations,Data$scats.p,Data$ncell,1)
+      dscat.sim<- sapply(xc$xscatd, match.locations,Data$scats.d,Data$ncell,1)
+      if(distm(xr.sim,xr0) < tol & distm(xs.sim,xs0) < 1 & 
+           distm(pscat.sim,xscp0) < tol & distm(dscat.sim,xscd0) < tol){
         found<- TRUE
         theta<- thetac
         xr<- xr.sim
         xs<- xs.sim
         xspot<- xc$xspot
+        pscats<- pscat.sim
+        dscats<- dscat.sim
         pop<- xc$pop
       }
     } 
