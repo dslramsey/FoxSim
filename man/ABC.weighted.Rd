@@ -3,7 +3,7 @@
 \alias{ABC.weighted}
 \title{Weighted rejection sampler for ABC estimation}
 \usage{
-ABC.weighted(i, parms, x0, tol, VarCov, w, priors, Data)
+ABC.weighted(i, parms, x0, ctol, stol, VarCov, w, priors, Data)
 }
 \arguments{
 \item{i}{parameter index used by \code{sapply}}
@@ -11,8 +11,6 @@ ABC.weighted(i, parms, x0, tol, VarCov, w, priors, Data)
 \item{parms}{Parameter population from the previous tolerance step}
 
 \item{x0}{List of observation vectors}
-
-\item{tol}{Tolerance level (Euclidean distance)}
 
 \item{VarCov}{Variance/covariance matrix for multivariate
 proposals used by \code{propose.theta}.}
@@ -25,6 +23,8 @@ by \code{pick.particle}.}
 distributions.}
 
 \item{Data}{Ancillary data required by \code{foxsim}.}
+
+\item{tol}{Tolerance level (Euclidean distance)}
 }
 \value{
 a list with elements

@@ -3,7 +3,7 @@
 \alias{PMC.appendFiles}
 \title{Append PMC model objects saved in rds files}
 \usage{
-PMC.appendFiles(x, TolName, fileout = NULL)
+PMC.appendFiles(x, fileout = NULL)
 }
 \arguments{
 \item{x}{A character vector of length at least 2 containing the relative
@@ -11,11 +11,11 @@ or full paths and filenames for all saved files.  files should be binary
 files saved from \code{PMC.sampler} (by setting \code{save.post}) and all
 files should contain at least one similar tolerance value.}
 
-\item{TolName}{Character value indicating the tolerance value used for
-appending samples.}
-
 \item{fileout}{character value of the filename to write the appended object
 to a file. Default is \code{NULL} which does not write anything.}
+
+\item{TolName}{Character value indicating the tolerance value used for
+appending samples.}
 }
 \value{
 A list with elements of \code{x} appended.\cr
@@ -23,6 +23,7 @@ A list with elements of \code{x} appended.\cr
 \code{xr} - simulated road killed carcasses.\cr
 \code{xs} - simulated hunter killed carcasses.\cr
 \code{xspot} - simulated spotlight detections. \cr
+\code{xscats} - simulated scat detections. \cr
 \code{pop} - population size trajectory for each year
 (number of occupied cells).
 }

@@ -3,19 +3,19 @@
 \alias{ABC.reject}
 \title{Rejection sampler for ABC estimation}
 \usage{
-ABC.reject(i, x0, tol, priors, Data)
+ABC.reject(i, x0, ctol, stol, priors, Data)
 }
 \arguments{
 \item{i}{parameter index used by \code{sapply}}
 
 \item{x0}{List of observation vectors}
 
-\item{tol}{Tolerance level (Euclidean distance)}
-
 \item{priors}{List specifying parameters of the prior
 distributions.}
 
 \item{Data}{Ancillary data required by \code{foxsim}.}
+
+\item{tol}{Tolerance level (Euclidean distance)}
 }
 \value{
 a list with elements
