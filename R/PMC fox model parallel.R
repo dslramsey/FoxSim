@@ -605,8 +605,13 @@ spotlight.survey<- function(occ, spotlocs, prob, strip, cellsize){
 ABC.reject<- function(i, x0, ctol, stol, priors, Data) {
 # ABC rejection algorithm sampling from priors 
   found<- FALSE
+  ins<- Data$nintro
+  ine<- 2*ins
     while(!found){
       thetac=sample.priors(priors)
+      iord<- order(thetac[(ins+1):ine])
+      thetac[1:ins]<- thetac[iord]
+      thetac[(ins+1):ine]<- thetac[(iord+ins)]
       xc=ModelABC(thetac, Data)
       xr.sim<- sapply(xc$xr, sum)
       xs.sim<- sapply(xc$xs, sum)
@@ -670,9 +675,14 @@ ABC.reject<- function(i, x0, ctol, stol, priors, Data) {
 ABC.weighted<- function(i, parms, x0, ctol, stol, VarCov, w, priors, Data) {
 # ABC proposal algorithm sampling from weighted posterior 
   found<- FALSE
+  ins<- Data$nintro # for ordering intoduction years and places
+  ine<- 2*ins
   while(!found){
     thetao=pick.particle(parms, w)             
-    thetac=propose.theta(thetao, VarCov, priors)     
+    thetac=propose.theta(thetao, VarCov, priors)  
+    iord<- order(thetac[(ins+1):ine])
+    thetac[1:ins]<- thetac[iord]
+    thetac[(ins+1):ine]<- thetac[(iord+ins)]
     xc=ModelABC(thetac, Data) 
     xr.sim<- sapply(xc$xr, sum)
     xs.sim<- sapply(xc$xs, sum)

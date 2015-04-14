@@ -167,13 +167,14 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
   }
   
   if(nintro == 1) {
+    // single introduction
      IntegerMatrix ip = as<IntegerMatrix>(incpoints[pintro[0]]);
      IntegerVector zz = seq_len(ip.nrow()) - 1;
      relpoint[0] = RcppArmadillo::sample(zz, 1, FALSE)[0];
      relmat(0,_) = ip(relpoint[0],_);
      iyear[0] = nyears - (endyear-yintro[0]) - 1;
   } else {
-        
+         // introductions in multiple years
         for(int i = 0; i < nintro; i++) { 
           IntegerMatrix ip = as<IntegerMatrix>(incpoints[pintro[i]]);
           IntegerVector zz = seq_len(ip.nrow()) - 1;
