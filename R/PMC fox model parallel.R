@@ -616,13 +616,13 @@ ABC.reject<- function(i, x0, ctol, stol, priors, Data) {
       xs0<- pre.pad(xs.sim,x0$xs)
       xscat0<- pre.pad(xscat.sim,x0$scat)
      
-      if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < 1 & xspot.sim < ctol 
+      if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < ctol & xspot.sim < ctol 
          & distm(xscat.sim,xscat0) < stol){
         xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
         xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
         xscat.sim<- sapply(xc$xscat, match.locations,Data$scats,Data$ncell,1)
         
-        if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < 1 & distm(xscat.sim,xscat0) < stol){
+        if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < ctol & distm(xscat.sim,xscat0) < stol){
           found<- TRUE
           theta<- thetac
           xr<- xr.sim
@@ -682,13 +682,13 @@ ABC.weighted<- function(i, parms, x0, ctol, stol, VarCov, w, priors, Data) {
     xs0<- pre.pad(xs.sim,x0$xs)
     xscat0<- pre.pad(xscat.sim,x0$scat)
     
-    if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < 1 & xspot.sim < ctol 
+    if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < ctol & xspot.sim < ctol 
        & distm(xscat.sim,xscat0) < stol){
       xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
       xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
       xscat.sim<- sapply(xc$xscat, match.locations,Data$scats,Data$ncell,1)
       
-      if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < 1 & distm(xscat.sim,xscat0) < stol){
+      if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < ctol & distm(xscat.sim,xscat0) < stol){
         found<- TRUE
         theta<- thetac
         xr<- xr.sim

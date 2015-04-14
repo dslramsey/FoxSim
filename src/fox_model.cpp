@@ -132,8 +132,7 @@ List advancepop(NumericMatrix x, NumericMatrix roads,
 // [[Rcpp::export]]
 List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, List parms) {
   
-  RNGScope scope ;  // initialise RNG         
-  
+  RNGScope scope ;  // initialise RNG   
   IntegerVector pintro = as<IntegerVector>(parms["pintro"]);
   IntegerVector yintro = as<IntegerVector>(parms["yintro"]);
   int nintro = as<int>(parms["nintro"]);
@@ -156,7 +155,7 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
   IntegerVector nkern = seq_len(Kern.size());
   IntegerVector iyear(nintro);
   IntegerVector relpoint(nintro);
-  NumericMatrix relmat(nintro,nintro);
+  NumericMatrix relmat(nintro,2);
   
   int kern_no = RcppArmadillo::sample(nkern, 1, FALSE)[0] - 1;
   NumericMatrix dkern = as<NumericMatrix>(Kern[kern_no]);
@@ -167,19 +166,32 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
     }
   }
   
-  for(int i = 0; i < nintro; i++) { 
-     IntegerMatrix ip = as<IntegerMatrix>(incpoints[pintro[i]]);
+  if(nintro == 1) {
+     IntegerMatrix ip = as<IntegerMatrix>(incpoints[pintro[0]]);
      IntegerVector zz = seq_len(ip.nrow()) - 1;
-     relpoint[i] = RcppArmadillo::sample(zz, 1, FALSE)[0];
-     relmat(i,_) = ip(relpoint[i],_);
-     iyear[i] = nyears - (endyear-yintro[i]) - 1;
+     relpoint[0] = RcppArmadillo::sample(zz, 1, FALSE)[0];
+     relmat(0,_) = ip(relpoint[0],_);
+     iyear[0] = nyears - (endyear-yintro[0]) - 1;
+  } else {
+        
+        for(int i = 0; i < nintro; i++) { 
+          IntegerMatrix ip = as<IntegerMatrix>(incpoints[pintro[i]]);
+          IntegerVector zz = seq_len(ip.nrow()) - 1;
+          relpoint[i] = RcppArmadillo::sample(zz, 1, FALSE)[0];
+          relmat(i,_) = ip(relpoint[i],_);
+          iyear[i] = nyears - (endyear-yintro[i]) - 1;
+        }
   }
-    
   
   for(int j = 0; j < nyears; j++) {
-    for(int k = 0; k < nintro; k++) {
-      if(j == iyear[k]) xone(relmat(k,0)-1,relmat(k,1)-1) = occupied;  // -1 to correspond to R
-    }
+    if(nintro == 1) {
+      if(j == iyear[0]) xone(relmat(0,0)-1,relmat(0,1)-1) = occupied;
+      }
+    else {
+      for(int k = 0; k < nintro; k++) {
+        if(j == iyear[k]) xone(relmat(k,0)-1,relmat(k,1)-1) = occupied;  // -1 to correspond to R
+        }
+      }
     xpop = advancepop(xone,roads,xhunt,dkern,parms);
     xone = as<NumericMatrix>(xpop[0]);
     NumericMatrix pop(clone(xone));  //make deep copy
