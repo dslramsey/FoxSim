@@ -136,6 +136,7 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
   
   IntegerVector pintro = as<IntegerVector>(parms["pintro"]);
   IntegerVector yintro = as<IntegerVector>(parms["yintro"]);
+  int nintro = as<int>(parms["nintro"]);
   int startyear = as<int>(parms["syear"]);
   int endyear = as<int>(parms["eyear"]);  
     
@@ -153,10 +154,9 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
   List huntloc(nyears);
   List poploc(nyears);
   IntegerVector nkern = seq_len(Kern.size());
-  int iptsize = incpoints.size();
-  IntegerVector iyear(iptsize);
-  IntegerVector relpoint(iptsize);
-  NumericMatrix relmat(iptsize,iptsize);
+  IntegerVector iyear(nintro);
+  IntegerVector relpoint(nintro);
+  NumericMatrix relmat(nintro,nintro);
   
   int kern_no = RcppArmadillo::sample(nkern, 1, FALSE)[0] - 1;
   NumericMatrix dkern = as<NumericMatrix>(Kern[kern_no]);
@@ -167,9 +167,8 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
     }
   }
   
-  for(int i = 0; i < iptsize; i++) { 
-     List iplist = as<List>(incpoints[i]);   
-     IntegerMatrix ip = as<IntegerMatrix>(iplist[pintro[i]]);
+  for(int i = 0; i < nintro; i++) { 
+     IntegerMatrix ip = as<IntegerMatrix>(incpoints[pintro[i]]);
      IntegerVector zz = seq_len(ip.nrow()) - 1;
      relpoint[i] = RcppArmadillo::sample(zz, 1, FALSE)[0];
      relmat(i,_) = ip(relpoint[i],_);
@@ -178,7 +177,7 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
     
   
   for(int j = 0; j < nyears; j++) {
-    for(int k = 0; k < iptsize; k++) {
+    for(int k = 0; k < nintro; k++) {
       if(j == iyear[k]) xone(relmat(k,0)-1,relmat(k,1)-1) = occupied;  // -1 to correspond to R
     }
     xpop = advancepop(xone,roads,xhunt,dkern,parms);

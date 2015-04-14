@@ -349,16 +349,18 @@ Make.Raster<- function(X, rast, years, bw=NULL) {
 #' @export
 #' 
 ModelABC<- function(parm, Data) {
-# Called by PMC.sampler  
+# Called by PMC.sampler
+  nintro<- Data$nintro
+  iend<- 2*nintro
   syear<- Data$syear
   eyear<- Data$eyear 
-  pintro<- round(parm[1:2])
-  yintro<- round(parm[3:4] + syear)
-  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[5],Ryear=parm[6],proad=parm[7],pshot=parm[8])
+  pintro<- round(parm[1:nintro])
+  yintro<- round(parm[(nintro+1):iend] + syear)
+  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[iend+1],Ryear=parm[iend+2],proad=parm[iend+3],pshot=parm[iend+4],nintro=nintro)
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Data$kern.list, Parms)
-  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[9], 0.2, 3))
-  xscat<- mapply(scat.survey, mod[[3]], Data$scatsearch, MoreArgs=list(drate=parm[10],parms=Data$scat.pars),SIMPLIFY=FALSE)
+  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[iend+5], 0.2, 3))
+  xscat<- mapply(scat.survey, mod[[3]], Data$scatsearch, MoreArgs=list(drate=parm[iend+6],parms=Data$scat.pars),SIMPLIFY=FALSE)
   list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot,xscat=xscat)
 }
 #-------------------------------------------------------------------------
