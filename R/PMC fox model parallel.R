@@ -29,7 +29,7 @@
 #' @export
 #' 
 PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
-  post.list<- list()    
+     
   if(parallel & !is.null(ncores)) {
     library(parallel)
     cl<- makeCluster(ncores,outfile=logfile)
@@ -61,16 +61,15 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     duration = difftime(Sys.time(), start, units = "secs")
     cat("Completed particles for tol ",cTol[1], " and ",sTol[1],"\n")
     cat("Time elapsed:", display.time(duration),"\n")
-  
+    
     w<- rep(1/N,N) 
     
-    post.list[[paste0("Tol",1)]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, cTol=cTol[1], sTol=sTol[1], elapsed=duration)
+    post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, cTol=cTol[1], sTol=sTol[1], elapsed=duration)
   
-    if(!is.null(save.post)) saveRDS(post.list,file=paste0(save.post,"tol",1,".rds"))
-    if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",1,".rds"))
-    rm(poploc,xx) # cleanup
+    if(!is.null(save.post)) saveRDS(post,file=paste0(save.post,"tol",1,".rds"))
+    if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",1,".rds"))   
     # Weights are uniform
-  
+   rm(xx,poploc,xr.sim,xs.sim,xspot.sim,xscats.sim)
   # Now select a weighted sample for each tolerance updating weights and proposal at each iteration
   # proposals are multivariate normal
   
@@ -96,16 +95,17 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       
       duration = difftime(Sys.time(), start, units = "secs")
       
-      post.list[[paste0("Tol",j)]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, cTol=cTol[j], sTol=sTol[j], elapsed=duration)
-      if(!is.null(save.post)) saveRDS(post.list[[paste0("Tol",j)]],file=paste0(save.post,"tol",j,".rds")) 
+      post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, cTol=cTol[j], sTol=sTol[j], elapsed=duration)
+      
+      if(!is.null(save.post)) saveRDS(post,file=paste0(save.post,"tol",j,".rds")) 
       if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",j,".rds"))
       
       cat("Completed current tolerance ",cTol[j]," and ",sTol[j],"\n")
       cat("Time elapsed:", display.time(duration),"\n")
-      rm(poploc,xx) # cleanup
+      rm(xx,poploc,xr.sim,xs.sim,xspot.sim,xscats.sim) 
   }  
 if(parallel) stopCluster(cl)                   
-post.list
+post
 
 }
 #-----------------------------------------------------------------------
