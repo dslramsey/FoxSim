@@ -10,53 +10,42 @@ using namespace Rcpp;
 NumericMatrix neighbourhood(NumericMatrix x, NumericMatrix wdist, int state);
 RcppExport SEXP FoxSim_neighbourhood(SEXP xSEXP, SEXP wdistSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP );
-        Rcpp::traits::input_parameter< NumericMatrix >::type wdist(wdistSEXP );
-        Rcpp::traits::input_parameter< int >::type state(stateSEXP );
-        NumericMatrix __result = neighbourhood(x, wdist, state);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type wdist(wdistSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    __result = Rcpp::wrap(neighbourhood(x, wdist, state));
+    return __result;
 END_RCPP
 }
 // matchspatial
 LogicalMatrix matchspatial(NumericMatrix locs, NumericMatrix x, int ncells, int state);
 RcppExport SEXP FoxSim_matchspatial(SEXP locsSEXP, SEXP xSEXP, SEXP ncellsSEXP, SEXP stateSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< NumericMatrix >::type locs(locsSEXP );
-        Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP );
-        Rcpp::traits::input_parameter< int >::type ncells(ncellsSEXP );
-        Rcpp::traits::input_parameter< int >::type state(stateSEXP );
-        LogicalMatrix __result = matchspatial(locs, x, ncells, state);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericMatrix >::type locs(locsSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< int >::type ncells(ncellsSEXP);
+    Rcpp::traits::input_parameter< int >::type state(stateSEXP);
+    __result = Rcpp::wrap(matchspatial(locs, x, ncells, state));
+    return __result;
 END_RCPP
 }
 // foxsim
-List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, List parms);
-RcppExport SEXP FoxSim_foxsim(SEXP xSEXP, SEXP roadsSEXP, SEXP incpointsSEXP, SEXP KernSEXP, SEXP parmsSEXP) {
+List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, List baitlist, List parms);
+RcppExport SEXP FoxSim_foxsim(SEXP xSEXP, SEXP roadsSEXP, SEXP incpointsSEXP, SEXP KernSEXP, SEXP baitlistSEXP, SEXP parmsSEXP) {
 BEGIN_RCPP
-    SEXP __sexp_result;
-    {
-        Rcpp::RNGScope __rngScope;
-        Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP );
-        Rcpp::traits::input_parameter< NumericMatrix >::type roads(roadsSEXP );
-        Rcpp::traits::input_parameter< List >::type incpoints(incpointsSEXP );
-        Rcpp::traits::input_parameter< List >::type Kern(KernSEXP );
-        Rcpp::traits::input_parameter< List >::type parms(parmsSEXP );
-        List __result = foxsim(x, roads, incpoints, Kern, parms);
-        PROTECT(__sexp_result = Rcpp::wrap(__result));
-    }
-    UNPROTECT(1);
-    return __sexp_result;
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type roads(roadsSEXP);
+    Rcpp::traits::input_parameter< List >::type incpoints(incpointsSEXP);
+    Rcpp::traits::input_parameter< List >::type Kern(KernSEXP);
+    Rcpp::traits::input_parameter< List >::type baitlist(baitlistSEXP);
+    Rcpp::traits::input_parameter< List >::type parms(parmsSEXP);
+    __result = Rcpp::wrap(foxsim(x, roads, incpoints, Kern, baitlist, parms));
+    return __result;
 END_RCPP
 }

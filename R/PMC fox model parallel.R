@@ -32,7 +32,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
      
   if(parallel & !is.null(ncores)) {
     library(parallel)
-    cl<- makeCluster(ncores,outfile=logfile)
+    cl<- makePSOCKcluster(ncores,outfile=logfile)
     clusterEvalQ(cl, {
       library(Rcpp)
       library(RcppArmadillo)
@@ -135,7 +135,7 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
   post.list<- list()    
   if(parallel & !is.null(ncores)) {
     library(parallel)
-    cl<- makeCluster(ncores,outfile=logfile)
+    cl<- makePSOCKcluster(ncores,outfile=logfile)
     clusterEvalQ(cl, {
       library(Rcpp)
       library(RcppArmadillo)
@@ -175,15 +175,15 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     
     duration = difftime(Sys.time(), start, units = "secs")
     
-    post.list[[paste0("Tol",j)]]<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, ctol=cTol[j], stol=sTol[j], elapsed=duration)
-    if(!is.null(save.post)) saveRDS(post.list[[paste0("Tol",j)]],file=paste0(save.post,"tol",j,".rds"))  
+    post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, ctol=cTol[j], stol=sTol[j], elapsed=duration)
+    if(!is.null(save.post)) saveRDS(post,file=paste0(save.post,"tol",j,".rds"))  
     if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",j,".rds"))
     cat("Completed current tolerance cTol= ",cTol[j]," and sTol= ",sTol[j],"\n")
     cat("Time elapsed:", display.time(duration),"\n")
     rm(poploc,xx) # cleanup
   }  
   if(parallel) stopCluster(cl)                   
-  post.list
+  post
   
 }
 #---------------------------------------------------------------------
@@ -356,9 +356,9 @@ ModelABC<- function(parm, Data) {
   eyear<- Data$eyear 
   pintro<- round(parm[1:nintro])
   yintro<- round(parm[(nintro+1):iend] + syear)
-  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[iend+1],Ryear=parm[iend+2],proad=parm[iend+3],pshot=parm[iend+4],nintro=nintro)
+  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[iend+1],Ryear=parm[iend+2],proad=parm[iend+3],pshot=parm[iend+4],pbait=parm[iend+7],nintro=nintro)
   # Fox cellular automata C++ function from library(FoxSim) 
-  mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Data$kern.list, Parms)
+  mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Data$kern.list, Data$baitlocs, Parms)
   xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[iend+5], 0.2, 3))
   xscat<- mapply(scat.survey, mod[[3]], Data$scatsearch, MoreArgs=list(drate=parm[iend+6],parms=Data$scat.pars),SIMPLIFY=FALSE)
   list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot,xscat=xscat)
