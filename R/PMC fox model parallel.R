@@ -46,16 +46,16 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
   
   # Use rejection sampling for first pass
   if(parallel)
-    xx<- parSapply(cl, 1:N, ABC.reject, x0, cTol[1], sTol[1], priors, Data)
+    xx<- clusterApplyLB(cl, 1:N, ABC.reject, x0, cTol[1], sTol[1], priors, Data)
   else
-    xx<- sapply(1:N, ABC.reject, x0, cTol[1], sTol[1], priors, Data)
+    xx<- lapply(1:N, ABC.reject, x0, cTol[1], sTol[1], priors, Data)
   
-    theta<- do.call('rbind',xx[1,])
-    xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-    xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-    xspot.sim<- t(sapply(xx[4,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-    xscats.sim<- t(sapply(xx[5,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-    poploc<- xx[6,]
+    theta<- t(sapply(xx, function(x) rbind(x[[1]])))
+    xr.sim<- t(sapply(xx, function(x) rbind(x[[2]])))
+    xs.sim<- t(sapply(xx, function(x) rbind(x[[3]])))
+    xspot.sim<- t(sapply(xx, function(x) rbind(x[[4]])))
+    xscats.sim<- t(sapply(xx, function(x) rbind(x[[5]])))
+    poploc<- lapply(xx, function(x) x[[6]])
     pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
      
     duration = difftime(Sys.time(), start, units = "secs")
@@ -72,7 +72,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
    rm(xx,poploc,xr.sim,xs.sim,xspot.sim,xscats.sim)
   # Now select a weighted sample for each tolerance updating weights and proposal at each iteration
   # proposals are multivariate normal
-  
+  if(nseq > 1) {
   for(j in 2:nseq) {
       start = Sys.time()
       thetaold<- theta
@@ -80,16 +80,16 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       VarCov = as.matrix(2 * cov.wt(thetaold, wold)$cov) ## Adjust std of proposal
       
       if(parallel)
-        xx<- parSapply(cl, 1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
+        xx<- clusterApplyLB(cl, 1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
       else
-        xx<- sapply(1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
+        xx<- lapply(1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
       
-      theta<- do.call('rbind',xx[1,])
-      xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-      xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-      xspot.sim<- t(sapply(xx[4,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-      xscats.sim<- t(sapply(xx[5,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-      poploc<- xx[6,]
+      theta<- t(sapply(xx, function(x) rbind(x[[1]])))
+      xr.sim<- t(sapply(xx, function(x) rbind(x[[2]])))
+      xs.sim<- t(sapply(xx, function(x) rbind(x[[3]])))
+      xspot.sim<- t(sapply(xx, function(x) rbind(x[[4]])))
+      xscats.sim<- t(sapply(xx, function(x) rbind(x[[5]])))
+      poploc<- lapply(xx, function(x) x[[6]])
       pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
       w<- calc.weights(theta, thetaold, wold, VarCov, priors)
       
@@ -103,7 +103,8 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       cat("Completed current tolerance ",cTol[j]," and ",sTol[j],"\n")
       cat("Time elapsed:", display.time(duration),"\n")
       rm(xx,poploc,xr.sim,xs.sim,xspot.sim,xscats.sim) 
-  }  
+    }
+  }
 if(parallel) stopCluster(cl)                   
 post
 
@@ -159,16 +160,16 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     VarCov = as.matrix(2 * cov.wt(thetaold, wold)$cov) ## Adjust std of proposal
     
     if(parallel)
-      xx<- parSapply(cl, 1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
+      xx<- clusterApplyLB(cl, 1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
     else
-      xx<- sapply(1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
+      xx<- lapply(1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
     
-    theta<- do.call('rbind',xx[1,])
-    xr.sim<- t(sapply(xx[2,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
-    xs.sim<- t(sapply(xx[3,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
-    xspot.sim<- t(sapply(xx[4,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)])) #from 2001:end.year
-    xscats.sim<- t(sapply(xx[5,],function(x) x[(length(x)-(Data$eyear-2001)):length(x)]))
-    poploc<- xx[6,]
+    theta<- t(sapply(xx, function(x) rbind(x[[1]])))
+    xr.sim<- t(sapply(xx, function(x) rbind(x[[2]])))
+    xs.sim<- t(sapply(xx, function(x) rbind(x[[3]])))
+    xspot.sim<- t(sapply(xx, function(x) rbind(x[[4]])))
+    xscats.sim<- t(sapply(xx, function(x) rbind(x[[5]])))
+    poploc<- lapply(xx, function(x) x[[6]])
     pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
     
     w<- calc.weights(theta, thetaold, wold, VarCov, priors)
@@ -407,6 +408,39 @@ kernel2D<- function(eps=3, max.disp=30, kfun=c("circle","Gauss","uniform","gamma
   znorm<- zprob/sum(zprob)
   znorm
 }
+#------------------------------------------------------------------------------
+#' Release points 
+#'
+#' \code{release.points} returns cell coordinates of \code{habitat}
+#' that are within \code{max.dist} of \code{intro.points}. Coordinates
+#' are given as row and column number corresponding to \code{habitat}.
+#' 
+#' @param intro.points Geographic coordinates of introduction points.
+#' points must lie with the bounding box of \code{habitat}
+#' @param max.dist Maximum distance (m) from \code{intro.points} to include as
+#' a potential release cell. Only cells coded as suitable habitat (1) are
+#' included.
+#' @param habitat Raster map of habitat with suitable habitat coded as 1
+#' 
+#' @return a list of size \code{nrow(intro.points)} with cell coordinates. 
+#'
+#' @examples
+#' release.points(intro, fox.suit, 10000) # suitable cells within 10km from intro. 
+#' @export
+#' 
+release.points<- function(intro.points, habitat, max.dist) {
+  # returns cell coordinates (rn, cn) of release points within
+  # max.dist of intro.points
+  xy<- coordinates(intro.points)
+  n<- nrow(xy)
+  release.list<- list()
+  for(i in 1:n) {
+    tmp<- distanceFromPoints(habitat, xy[i,])
+    cells<-  Which(tmp <= max.dist & habitat == 1, cells=T)
+    release.list[[i]]<- rowColFromCell(habitat,cells)
+  }
+  release.list
+}
 #-------------------------------------------------------------------------------
 #' Distance measure for ABC estimation
 #'
@@ -607,6 +641,7 @@ ABC.reject<- function(i, x0, ctol, stol, priors, Data) {
   found<- FALSE
   ins<- Data$nintro
   ine<- 2*ins
+  if(Data$Exact) extol<- 1 else extol<- ctol
     while(!found){
       thetac=sample.priors(priors)
       iord<- order(thetac[(ins+1):ine])
@@ -621,13 +656,13 @@ ABC.reject<- function(i, x0, ctol, stol, priors, Data) {
       xs0<- pre.pad(xs.sim,x0$xs)
       xscat0<- pre.pad(xscat.sim,x0$scat)
      
-      if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < ctol & xspot.sim < ctol 
+      if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & xspot.sim < extol 
          & distm(xscat.sim,xscat0) < stol){
         xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
         xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
         xscat.sim<- sapply(xc$xscat, match.locations,Data$scats,Data$ncell,1)
         
-        if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < ctol & distm(xscat.sim,xscat0) < stol){
+        if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & distm(xscat.sim,xscat0) < stol){
           found<- TRUE
           theta<- thetac
           xr<- xr.sim
@@ -677,6 +712,7 @@ ABC.weighted<- function(i, parms, x0, ctol, stol, VarCov, w, priors, Data) {
   found<- FALSE
   ins<- Data$nintro # for ordering intoduction years and places
   ine<- 2*ins
+  if(Data$Exact) extol<- 1 else extol<- ctol
   while(!found){
     thetao=pick.particle(parms, w)             
     thetac=propose.theta(thetao, VarCov, priors)  
@@ -692,13 +728,13 @@ ABC.weighted<- function(i, parms, x0, ctol, stol, VarCov, w, priors, Data) {
     xs0<- pre.pad(xs.sim,x0$xs)
     xscat0<- pre.pad(xscat.sim,x0$scat)
     
-    if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < ctol & xspot.sim < ctol 
+    if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & xspot.sim < extol 
        & distm(xscat.sim,xscat0) < stol){
       xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
       xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
       xscat.sim<- sapply(xc$xscat, match.locations,Data$scats,Data$ncell,1)
       
-      if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < ctol & distm(xscat.sim,xscat0) < stol){
+      if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & distm(xscat.sim,xscat0) < stol){
         found<- TRUE
         theta<- thetac
         xr<- xr.sim
@@ -735,7 +771,7 @@ ABC.weighted<- function(i, parms, x0, ctol, stol, VarCov, w, priors, Data) {
 #' @export
 calc.weights<- function(theta, thetaold, w, VarCov, priors){
 # calculate weights for posterior. Kernel is multivariate normal
-  imat<- solve(VarCov)
+  imat<- qr.solve(VarCov)
   mvnorm<- function(mu, ivcov) {
     Z<- t(mu)   
     exp(-0.5*apply((ivcov %*% Z) * Z, 2, sum))

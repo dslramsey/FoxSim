@@ -86,7 +86,7 @@ LogicalMatrix matchspatial(NumericMatrix locs, NumericMatrix x, int ncells, int 
 }
 //===============================================================
 List advancepop(NumericMatrix x, NumericMatrix roads,
-                NumericMatrix xhunt, NumericMatrix offspkern, NumericMatrix baits, List parms) {
+                NumericMatrix xhunt, NumericMatrix offspkern, IntegerMatrix baits, List parms) {
   
   double psurv = as<double>(parms["psurv"]);
   double Ryear = as<double>(parms["Ryear"]);
@@ -114,9 +114,11 @@ List advancepop(NumericMatrix x, NumericMatrix roads,
   
   // simulate baiting. Assume applies at start of year  
   for(int k = 0; k < nb; k++) {
+    if(!IntegerMatrix::is_na(baits(k,0))) {
     // subtract 1 from row and column references to conform to C++ 0 indexing
     if((x(baits(k,0)-1,baits(k,1)-1) == occupied) && (pbait >= R::runif(0,1))) {
       x(baits(k,0)-1,baits(k,1)-1) = suitable; // kill fox & revert to suitable
+      }
     }
   }
   
@@ -203,7 +205,7 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
         if(j == iyear[k]) xone(relmat(k,0)-1,relmat(k,1)-1) = occupied;  // -1 to correspond to R
       }
     }
-    NumericMatrix baits = baitlist[j];
+    IntegerMatrix baits = as<IntegerMatrix>(baitlist[j]);
     xpop = advancepop(xone,roads,xhunt,dkern,baits,parms);
     xone = as<NumericMatrix>(xpop[0]);
     NumericMatrix pop(clone(xone));  //make deep copy
