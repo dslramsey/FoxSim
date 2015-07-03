@@ -574,7 +574,7 @@ scat.survey<- function(occ, scatlocs, drate, parms) {
     nonzero<- dscats > 0
     scoord<- matrix(scatlocs[atrisk[nonzero],c(1,2)],ncol=2)
     #occ[scoord[,1],scoord[,2]]<- dscats[nonzero]
-    occ[scoord[,1],scoord[,2]]<- 1
+    occ[scoord]<- 1
   }
   occ
 }
