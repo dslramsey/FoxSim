@@ -8,12 +8,13 @@ Maintainer: <david.ramsey@depi.vic.gov.au>
 Description: A cellular automata model for an invading fox population in
     Tasmania.
 License: GPL
-Imports:
-    Rcpp (>= 0.11.2)
-Depends:
+Imports: 
+    Rcpp (>= 0.11.2),
+    mvtnorm
+Depends: 
     Rcpp (>= 0.11.2),
     RcppArmadillo (>= 0.3.820)
 LinkingTo: Rcpp, RcppArmadillo
-Suggests:
+Suggests: 
     knitr
 VignetteBuilder: knitr

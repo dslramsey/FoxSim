@@ -29,13 +29,14 @@
 #' @export
 #' 
 PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
-     
+  library(mvtnorm)
   if(parallel & !is.null(ncores)) {
     library(parallel)
     cl<- makePSOCKcluster(ncores,outfile=logfile)
     clusterEvalQ(cl, {
       library(Rcpp)
       library(RcppArmadillo)
+      library(mvtnorm)
       library(FoxSim)
     })
   }
@@ -55,7 +56,8 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     xs.sim<- t(sapply(xx, function(x) rbind(x[[3]])))
     xspot.sim<- t(sapply(xx, function(x) rbind(x[[4]])))
     xscats.sim<- t(sapply(xx, function(x) rbind(x[[5]])))
-    poploc<- lapply(xx, function(x) x[[6]])
+    fpscats.sim<- t(sapply(xx, function(x) rbind(x[[6]])))
+    poploc<- lapply(xx, function(x) x[[7]])
     pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
      
     duration = difftime(Sys.time(), start, units = "secs")
@@ -64,12 +66,13 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
     
     w<- rep(1/N,N) 
     
-    post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, cTol=cTol[1], sTol=sTol[1], elapsed=duration)
+    post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, fpscats=fpscats.sim, 
+                pop=pop, weights=w, cTol=cTol[1], sTol=sTol[1], elapsed=duration)
   
     if(!is.null(save.post)) saveRDS(post,file=paste0(save.post,"tol",1,".rds"))
     if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",1,".rds"))   
     # Weights are uniform
-   rm(xx,poploc,xr.sim,xs.sim,xspot.sim,xscats.sim)
+   rm(xx,poploc,xr.sim,xs.sim,xspot.sim,xscats.sim,fpscats.sim)
   # Now select a weighted sample for each tolerance updating weights and proposal at each iteration
   # proposals are multivariate normal
   if(nseq > 1) {
@@ -89,13 +92,15 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       xs.sim<- t(sapply(xx, function(x) rbind(x[[3]])))
       xspot.sim<- t(sapply(xx, function(x) rbind(x[[4]])))
       xscats.sim<- t(sapply(xx, function(x) rbind(x[[5]])))
-      poploc<- lapply(xx, function(x) x[[6]])
+      fpscats.sim<- t(sapply(xx, function(x) rbind(x[[6]])))
+      poploc<- lapply(xx, function(x) x[[7]])
       pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
       w<- calc.weights(theta, thetaold, wold, VarCov, priors)
       
       duration = difftime(Sys.time(), start, units = "secs")
       
-      post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, cTol=cTol[j], sTol=sTol[j], elapsed=duration)
+      post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, 
+                  fpscats=fpscats.sim, pop=pop, weights=w, cTol=cTol[j], sTol=sTol[j], elapsed=duration)
       
       if(!is.null(save.post)) saveRDS(post,file=paste0(save.post,"tol",j,".rds")) 
       if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",j,".rds"))
@@ -169,14 +174,17 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     xs.sim<- t(sapply(xx, function(x) rbind(x[[3]])))
     xspot.sim<- t(sapply(xx, function(x) rbind(x[[4]])))
     xscats.sim<- t(sapply(xx, function(x) rbind(x[[5]])))
-    poploc<- lapply(xx, function(x) x[[6]])
+    fpscats.sim<- t(sapply(xx, function(x) rbind(x[[6]])))
+    poploc<- lapply(xx, function(x) x[[7]])
     pop<- lapply(poploc, function(x) sapply(x, function(y) sum(y==2)))
     
     w<- calc.weights(theta, thetaold, wold, VarCov, priors)
     
     duration = difftime(Sys.time(), start, units = "secs")
     
-    post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, pop=pop, weights=w, ctol=cTol[j], stol=sTol[j], elapsed=duration)
+    post<- list(theta=theta, xr=xr.sim, xs=xs.sim, xspot=xspot.sim, xscats=xscats.sim, 
+                fpscats=fpscats.sim, pop=pop, weights=w, ctol=cTol[j], stol=sTol[j], elapsed=duration)
+    
     if(!is.null(save.post)) saveRDS(post,file=paste0(save.post,"tol",j,".rds"))  
     if(!is.null(save.post)) saveRDS(poploc, file=paste0(save.post,"pop",j,".rds"))
     cat("Completed current tolerance cTol= ",cTol[j]," and sTol= ",sTol[j],"\n")
@@ -234,6 +242,7 @@ PMC.appendFiles<- function(x, fileout=NULL) {
   xs<- tmp$xs
   xspot<- tmp$xspot
   xscats<- tmp$xscats
+  fpscats<- tmp$fpscats
   pop<- tmp$pop
   for(i in 2:n) {
     tmp<- readRDS(x[i])
@@ -244,9 +253,10 @@ PMC.appendFiles<- function(x, fileout=NULL) {
     xs<- rbind(xs, tmp$xs)
     xspot<- rbind(xspot, tmp$xspot)
     xscats<- rbind(xscats, tmp$xscats)
+    fpscats<- rbind(fpscats,tmp$fpscats)
     pop<- c(pop, tmp$pop)
   }
-  temp<- list(theta=theta,xr=xr,xs=xs,xspot=xspot,xscats=xscats,pop=pop)
+  temp<- list(theta=theta,xr=xr,xs=xs,xspot=xspot,xscats=xscats,fpscats=fpscats,pop=pop)
   if(!is.null(fileout)) saveRDS(temp,file=fileout)
   temp
 }
@@ -357,11 +367,15 @@ ModelABC<- function(parm, Data) {
   eyear<- Data$eyear 
   pintro<- round(parm[1:nintro])
   yintro<- round(parm[(nintro+1):iend] + syear)
+  nyears<- length(syear:eyear)
+  pFP.parms<- parm[(iend+8):(iend+8+sum(Data$nfpyrs)-1)]
+  pFP<- as.list(rep(0, nyears))
+  pFP[Data$nfpyrs]<- pFP.parms
   Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[iend+1],Ryear=parm[iend+2],proad=parm[iend+3],pshot=parm[iend+4],pbait=parm[iend+7],nintro=nintro)
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Data$kern.list, Data$baitlocs, Parms)
   xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[iend+5], 0.2, 3))
-  xscat<- mapply(scat.survey, mod[[3]], Data$scatsearch, MoreArgs=list(drate=parm[iend+6],parms=Data$scat.pars),SIMPLIFY=FALSE)
+  xscat<- mapply(scat.survey, mod[[3]], Data$scatsearch, pFP, MoreArgs=list(drate=parm[iend+6],parms=Data$scat.pars),SIMPLIFY=FALSE)
   list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot,xscat=xscat)
 }
 #-------------------------------------------------------------------------
@@ -505,7 +519,7 @@ pre.pad<- function(x, obs) {
 #' @export
 match.locations<- function(x, locs, ncell, Val) {
   zz<- matchspatial(locs, x, ncell, Val)
-  sum(zz)
+  zz
 }
 #-----------------------------------------------------------------
 #' Expected scats calculations
@@ -558,13 +572,15 @@ expected.scats<- function(pr, dr, lf) {
 #' 
 #' @seealso \code{\link{expected.scats}}, \code{\link{ModelABC}}
 #' @export
-scat.survey<- function(occ, scatlocs, drate, parms) {
+scat.survey<- function(occ, scatlocs, fprate, drate, parms) {
   # Scat observation process
   # occ is occupancy status, scatlocs is the coordinates of the search effort
   # drate is the (log) per unit detection rate, parms are the parameters of
   # scat generation process
-  atrisk<- which(occ[cbind(scatlocs[,1],scatlocs[,2])] == 2) 
+  atrisk<- which(occ[cbind(scatlocs[,1],scatlocs[,2])] == 2) #occupied sites 
+  frisk<- which(occ[cbind(scatlocs[,1],scatlocs[,2])] != 2) #unoccupied sites
   n<- length(atrisk)
+  nfp<- length(frisk)
   occ[,]<- 0  # set value of all cells to zero
   if(n > 0) { 
     exp.scats<- replicate(n, expected.scats(pr=parms$pr, dr=parms$dr, lf=parms$lf))
@@ -574,7 +590,14 @@ scat.survey<- function(occ, scatlocs, drate, parms) {
     nonzero<- dscats > 0
     scoord<- matrix(scatlocs[atrisk[nonzero],c(1,2)],ncol=2)
     #occ[scoord[,1],scoord[,2]]<- dscats[nonzero]
-    occ[scoord[,1],scoord[,2]]<- 1
+    occ[scoord]<- 1
+  }
+  if(nfp > 0) {
+    fpscats<- rbinom(nfp, 1, fprate)
+    nonzero<- fpscats > 0
+    fcoord<- matrix(scatlocs[frisk[nonzero],c(1,2)],ncol=2)
+    #occ[scoord[,1],scoord[,2]]<- dscats[nonzero]
+    occ[fcoord]<- 2
   }
   occ
 }
@@ -651,16 +674,28 @@ ABC.reject<- function(i, x0, ctol, stol, priors, Data) {
       xr.sim<- sapply(xc$xr, sum)
       xs.sim<- sapply(xc$xs, sum)
       xspot.sim<- sum(xc$xspot)
-      xscat.sim<- sapply(xc$xscat,sum)
+      TPscat<- sapply(xc$xscat, function(x) sum(x==1)) # scats on occupied sites
+      FPscat<- sapply(xc$xscat, function(x) sum(x==2)) # scats on unoccupied sites
+      xscat.sim<- TPscat + FPscat #total is sum of true positive and false positive
       xr0<- pre.pad(xr.sim,x0$xr)
       xs0<- pre.pad(xs.sim,x0$xs)
       xscat0<- pre.pad(xscat.sim,x0$scat)
      
       if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & xspot.sim < extol 
          & distm(xscat.sim,xscat0) < stol){
-        xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
-        xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
-        xscat.sim<- sapply(xc$xscat, match.locations,Data$scats,Data$ncell,1)
+        xr.sim<- lapply(xc$xr, match.locations,Data$carcass.road,Data$ncellC,1)
+        xs.sim<- lapply(xc$xs, match.locations,Data$carcass.shot,Data$ncellC,1)
+        xr.sim<- sapply(xr.sim, sum)
+        xs.sim<- sapply(xs.sim, sum)
+        TPscat<- mapply(match.locations, xc$xscat, Data$scats, 
+                        MoreArgs = list(ncell=Data$ncellS,Val=1),SIMPLIFY=FALSE)  
+        FPscat<- mapply(match.locations, xc$xscat, Data$scats, 
+                        MoreArgs = list(ncell=Data$ncellS,Val=2),SIMPLIFY=FALSE) 
+        xscat.sim<- sapply(TPscat, sum) + sapply(FPscat, sum)
+        
+        x1=do.call('c',mapply(function(x,y) as.numeric(x[y]), TPscat, Data$scats))
+        x2=do.call('c',mapply(function(x,y) as.numeric(x[y]), FPscat, Data$scats))
+        x1[which(x2==1)]<- 2
         
         if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & distm(xscat.sim,xscat0) < stol){
           found<- TRUE
@@ -669,12 +704,13 @@ ABC.reject<- function(i, x0, ctol, stol, priors, Data) {
           xs<- xs.sim
           xspot<- xc$xspot
           xscats<- xscat.sim
+          fpscats<- x1
           pop<- xc$pop
         }
       }
     }
   cat("completed particle ",i," for ctol ",ctol," and stol ",stol,"\n")
-  list(theta,xr,xs,xspot,xscats,pop)
+  list(theta,xr,xs,xspot,xscats,fpscats,pop)
   }
 #------------------------------------------------------------------------
 #' Weighted rejection sampler for ABC estimation
@@ -723,16 +759,28 @@ ABC.weighted<- function(i, parms, x0, ctol, stol, VarCov, w, priors, Data) {
     xr.sim<- sapply(xc$xr, sum)
     xs.sim<- sapply(xc$xs, sum)
     xspot.sim<- sum(xc$xspot)
-    xscat.sim<- sapply(xc$xscat,sum)
+    TPscat<- sapply(xc$xscat, function(x) sum(x==1)) # scats on occupied sites
+    FPscat<- sapply(xc$xscat, function(x) sum(x==2)) # scats on unoccupied sites
+    xscat.sim<- TPscat + FPscat #total is sum of true positive and false positive
     xr0<- pre.pad(xr.sim,x0$xr)
     xs0<- pre.pad(xs.sim,x0$xs)
     xscat0<- pre.pad(xscat.sim,x0$scat)
     
     if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & xspot.sim < extol 
        & distm(xscat.sim,xscat0) < stol){
-      xr.sim<- sapply(xc$xr, match.locations,Data$carcass.road,Data$ncell,1)
-      xs.sim<- sapply(xc$xs, match.locations,Data$carcass.shot,Data$ncell,1)
-      xscat.sim<- sapply(xc$xscat, match.locations,Data$scats,Data$ncell,1)
+      xr.sim<- lapply(xc$xr, match.locations,Data$carcass.road,Data$ncellC,1)
+      xs.sim<- lapply(xc$xs, match.locations,Data$carcass.shot,Data$ncellC,1)
+      xr.sim<- sapply(xr.sim, sum)
+      xs.sim<- sapply(xs.sim, sum)
+      TPscat<- mapply(match.locations, xc$xscat, Data$scats, 
+                      MoreArgs = list(ncell=Data$ncellS,Val=1),SIMPLIFY=FALSE)  
+      FPscat<- mapply(match.locations, xc$xscat, Data$scats, 
+                      MoreArgs = list(ncell=Data$ncellS,Val=2),SIMPLIFY=FALSE) 
+      xscat.sim<- sapply(TPscat, sum) + sapply(FPscat, sum)
+      
+      x1=do.call('c',mapply(function(x,y) as.numeric(x[y]), TPscat, Data$scats))
+      x2=do.call('c',mapply(function(x,y) as.numeric(x[y]), FPscat, Data$scats))
+      x1[which(x2==1)]<- 2
       
       if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & distm(xscat.sim,xscat0) < stol){
         found<- TRUE
@@ -741,12 +789,13 @@ ABC.weighted<- function(i, parms, x0, ctol, stol, VarCov, w, priors, Data) {
         xs<- xs.sim
         xspot<- xc$xspot
         xscats<- xscat.sim
+        fpscats<- x1
         pop<- xc$pop
       }
-    } 
+    }
   }
   cat("completed particle ",i," for ctol ",ctol," and stol ",stol,"\n")
-  list(theta,xr,xs,xspot,xscats,pop)
+  list(theta,xr,xs,xspot,xscats,fpscats,pop)
 }
 #--------------------------------------------------------------------------------
 #' Weights calculation for sequential Monte Carlo sampling
@@ -829,7 +878,8 @@ propose.theta<- function(theta, vcov, priors) {
   n<- length(theta)
   test<- FALSE
   while(!test) {
-    prop<- as.vector(theta + rbind(rnorm(n)) %*% chol(vcov))
+    #prop<- as.vector(theta + rbind(rnorm(n)) %*% chol(vcov))
+    prop<- as.vector(rmvnorm(1, theta, vcov))
     if(has.support(prop,priors)) test<- TRUE
   }
   prop
