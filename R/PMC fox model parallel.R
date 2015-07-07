@@ -29,14 +29,13 @@
 #' @export
 #' 
 PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
-  library(mvtnorm)
+  
   if(parallel & !is.null(ncores)) {
     library(parallel)
     cl<- makePSOCKcluster(ncores,outfile=logfile)
     clusterEvalQ(cl, {
       library(Rcpp)
       library(RcppArmadillo)
-      library(mvtnorm)
       library(FoxSim)
     })
   }
@@ -368,9 +367,11 @@ ModelABC<- function(parm, Data) {
   pintro<- round(parm[1:nintro])
   yintro<- round(parm[(nintro+1):iend] + syear)
   nyears<- length(syear:eyear)
-  pFP.parms<- parm[(iend+8):(iend+8+sum(Data$nfpyrs)-1)]
-  pFP<- as.list(rep(0, nyears))
-  pFP[Data$nfpyrs]<- pFP.parms
+  if(sum(Data$nfpyrs) > 0) {
+    pFP.parms<- parm[(iend+8):(iend+8+sum(Data$nfpyrs)-1)]
+    pFP<- as.list(rep(0, nyears))
+    pFP[Data$nfpyrs]<- pFP.parms
+  } else pFP<- as.list(rep(0, nyears))
   Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[iend+1],Ryear=parm[iend+2],proad=parm[iend+3],pshot=parm[iend+4],pbait=parm[iend+7],nintro=nintro)
   # Fox cellular automata C++ function from library(FoxSim) 
   mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Data$kern.list, Data$baitlocs, Parms)
@@ -878,8 +879,7 @@ propose.theta<- function(theta, vcov, priors) {
   n<- length(theta)
   test<- FALSE
   while(!test) {
-    #prop<- as.vector(theta + rbind(rnorm(n)) %*% chol(vcov))
-    prop<- as.vector(rmvnorm(1, theta, vcov))
+    prop<- as.vector(theta + rbind(rnorm(n)) %*% chol(vcov))
     if(has.support(prop,priors)) test<- TRUE
   }
   prop

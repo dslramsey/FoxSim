@@ -10,7 +10,6 @@ Description: A cellular automata model for an invading fox population in
 License: GPL
 Imports: 
     Rcpp (>= 0.11.2),
-    mvtnorm
 Depends: 
     Rcpp (>= 0.11.2),
     RcppArmadillo (>= 0.3.820)
