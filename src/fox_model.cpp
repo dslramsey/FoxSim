@@ -78,7 +78,7 @@ LogicalMatrix matchspatial(NumericMatrix locs, NumericMatrix x, int ncells, int 
       for(int ii = imax(-ncells,-(locs(k,0) - 1)); ii <= imin(n-(locs(k,0) - 1),ncells); ii++) {
           for(int jj= imax(-ncells,-(locs(k,1) - 1)); jj <= imin(m-(locs(k,1) - 1),ncells); jj++) {
             if(x((locs(k,0) + ii - 1),(locs(k,1) + jj - 1)) == state) 
-               z((locs(k,0) - 1),(locs(k,1) - 1)) = true;
+               z((locs(k,0) +ii  - 1),(locs(k,1) + jj - 1)) = true;
           }
         }
       }

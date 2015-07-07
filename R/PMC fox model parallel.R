@@ -684,20 +684,20 @@ ABC.reject<- function(i, x0, ctol, stol, priors, Data) {
      
       if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & xspot.sim < extol 
          & distm(xscat.sim,xscat0) < stol){
-        xr.sim<- lapply(xc$xr, match.locations,Data$carcass.road,Data$ncellC,1)
-        xs.sim<- lapply(xc$xs, match.locations,Data$carcass.shot,Data$ncellC,1)
-        xr.sim<- sapply(xr.sim, sum)
-        xs.sim<- sapply(xs.sim, sum)
-        TPscat<- mapply(match.locations, xc$xscat, Data$scats, 
-                        MoreArgs = list(ncell=Data$ncellS,Val=1),SIMPLIFY=FALSE)  
-        FPscat<- mapply(match.locations, xc$xscat, Data$scats, 
-                        MoreArgs = list(ncell=Data$ncellS,Val=2),SIMPLIFY=FALSE) 
-        xscat.sim<- sapply(TPscat, sum) + sapply(FPscat, sum)
-        
-        x1=do.call('c',mapply(function(x,y) as.numeric(x[y]), TPscat, Data$scats))
-        x2=do.call('c',mapply(function(x,y) as.numeric(x[y]), FPscat, Data$scats))
-        x1[which(x2==1)]<- 2
-        
+        if(Data$MatchSpatial) {
+          xr.sim<- lapply(xc$xr, match.locations,Data$carcass.road,Data$ncellC,1)
+          xs.sim<- lapply(xc$xs, match.locations,Data$carcass.shot,Data$ncellC,1)
+          xr.sim<- sapply(xr.sim, sum)
+          xs.sim<- sapply(xs.sim, sum)
+          TPscat<- mapply(match.locations, xc$xscat, Data$scats, 
+                          MoreArgs = list(ncell=Data$ncellS,Val=1),SIMPLIFY=FALSE)  
+          FPscat<- mapply(match.locations, xc$xscat, Data$scats, 
+                          MoreArgs = list(ncell=Data$ncellS,Val=2),SIMPLIFY=FALSE) 
+          xscat.sim<- sapply(TPscat, sum) + sapply(FPscat, sum)
+          x1=do.call('c',mapply(function(x,y) as.numeric(x[y]), TPscat, Data$scats))
+          x2=do.call('c',mapply(function(x,y) as.numeric(x[y]), FPscat, Data$scats))
+          x1[which(x2==1)]<- 2
+        } else x1<- rep(0, sum(xscat0)) # no spatial matching
         if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & distm(xscat.sim,xscat0) < stol){
           found<- TRUE
           theta<- thetac
@@ -769,20 +769,21 @@ ABC.weighted<- function(i, parms, x0, ctol, stol, VarCov, w, priors, Data) {
     
     if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & xspot.sim < extol 
        & distm(xscat.sim,xscat0) < stol){
-      xr.sim<- lapply(xc$xr, match.locations,Data$carcass.road,Data$ncellC,1)
-      xs.sim<- lapply(xc$xs, match.locations,Data$carcass.shot,Data$ncellC,1)
-      xr.sim<- sapply(xr.sim, sum)
-      xs.sim<- sapply(xs.sim, sum)
-      TPscat<- mapply(match.locations, xc$xscat, Data$scats, 
-                      MoreArgs = list(ncell=Data$ncellS,Val=1),SIMPLIFY=FALSE)  
-      FPscat<- mapply(match.locations, xc$xscat, Data$scats, 
-                      MoreArgs = list(ncell=Data$ncellS,Val=2),SIMPLIFY=FALSE) 
-      xscat.sim<- sapply(TPscat, sum) + sapply(FPscat, sum)
-      
-      x1=do.call('c',mapply(function(x,y) as.numeric(x[y]), TPscat, Data$scats))
-      x2=do.call('c',mapply(function(x,y) as.numeric(x[y]), FPscat, Data$scats))
-      x1[which(x2==1)]<- 2
-      
+      if(Data$MatchSpatial) {
+        xr.sim<- lapply(xc$xr, match.locations,Data$carcass.road,Data$ncellC,1)
+        xs.sim<- lapply(xc$xs, match.locations,Data$carcass.shot,Data$ncellC,1)
+        xr.sim<- sapply(xr.sim, sum)
+        xs.sim<- sapply(xs.sim, sum)
+        TPscat<- mapply(match.locations, xc$xscat, Data$scats, 
+                        MoreArgs = list(ncell=Data$ncellS,Val=1),SIMPLIFY=FALSE)  
+        FPscat<- mapply(match.locations, xc$xscat, Data$scats, 
+                        MoreArgs = list(ncell=Data$ncellS,Val=2),SIMPLIFY=FALSE) 
+        xscat.sim<- sapply(TPscat, sum) + sapply(FPscat, sum)
+        
+        x1=do.call('c',mapply(function(x,y) as.numeric(x[y]), TPscat, Data$scats))
+        x2=do.call('c',mapply(function(x,y) as.numeric(x[y]), FPscat, Data$scats))
+        x1[which(x2==1)]<- 2
+      } else x1<- rep(0, sum(xscat0)) # no spatial matching
       if(distm(xr.sim,xr0) < ctol & distm(xs.sim,xs0) < extol & distm(xscat.sim,xscat0) < stol){
         found<- TRUE
         theta<- thetac
