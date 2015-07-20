@@ -10,6 +10,8 @@
 #' @param SeqTol the sequence of (increasingly smaller) tolerances
 #' @param priors list of prior distribution parameters
 #' @param Data list containing other required inputs into \code{foxsim}
+#' @param kern type of proposals for peturbing variables. Choices are
+#' "multi" or "uni" indicating multivariate or componentwise repectively
 #' @param parallel logical indicating use of parallel computations
 #' @param ncores integer indicating number of cores to use
 #' @param logfile character indicating the filename to write out intermediate
@@ -28,7 +30,7 @@
 #' \code{elapsed} elapsed time (in seconds)
 #' @export
 #' 
-PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
+PMC.sampler<- function(N, x0, SeqTol, priors, Data, kern = c("multi","uni"), parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
   
   if(parallel & !is.null(ncores)) {
     library(parallel)
@@ -39,6 +41,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       library(FoxSim)
     })
   }
+  kern<- match.arg(kern, c("multi","uni"))
   start = Sys.time()
   cTol<- SeqTol$ctol
   sTol<- SeqTol$stol
@@ -79,7 +82,10 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL,
       start = Sys.time()
       thetaold<- theta
       wold<- w
-      VarCov = as.matrix(2 * cov.wt(thetaold, wold)$cov) ## Adjust std of proposal
+      if(identical(kern, "multi"))
+        VarCov = as.matrix(2 * cov.wt(thetaold, wold)$cov) ## multivariate proposals
+      else
+        VarCov = as.matrix(2 * diag(var.wt(thetaold, wold))) ## componentwise proposals
       
       if(parallel)
         xx<- clusterApplyLB(cl, 1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
@@ -136,7 +142,7 @@ post
 #' @seealso \code{\link{PMC.sampler}}
 #' @export
 #' 
-PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
+PMC.update<- function(post, N, x0, SeqTol, priors, Data, kern = c("multi","uni"), parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
   post.list<- list()    
   if(parallel & !is.null(ncores)) {
     library(parallel)
@@ -149,6 +155,7 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
   }
   # Update a weighted sample for each tolerance updating weights and proposal at each iteration
   # proposals are multivariate normal
+  kern<- match.arg(kern, c("multi","uni"))
   
   theta<- post$theta
   w<- post$weights
@@ -161,7 +168,10 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, parallel=FALSE, ncores=
     start = Sys.time()
     thetaold<- theta
     wold<- w
-    VarCov = as.matrix(2 * cov.wt(thetaold, wold)$cov) ## Adjust std of proposal
+    if(identical(kern, "multi"))
+      VarCov = as.matrix(2 * cov.wt(thetaold, wold)$cov) ## multivariate proposals
+    else
+      VarCov = as.matrix(2 * diag(var.wt(thetaold, wold))) ## componentwise proposals
     
     if(parallel)
       xx<- clusterApplyLB(cl, 1:N, ABC.weighted, thetaold, x0, cTol[j], sTol[j], VarCov, wold, priors, Data)
@@ -832,6 +842,32 @@ calc.weights<- function(theta, thetaold, w, VarCov, priors){
   wstar<- num/den            
   wup<- wstar/sum(wstar)
   wup
+}
+#--------------------------------------------------------------------------------
+#' Weighted variance calculation
+#'
+#' \code{var.wt} calculates the weighted variance for each column
+#' of a matrix and is used for specifying a componenwise peturbation 
+#' kernel.  Used in \code{PMC.sampler}.
+#'  
+#' @param x matrix 
+#' @param w Vector of weights of length \code{nrow(x)}
+#' #' 
+#' @return a vector of weighted variances, one for each column of 
+#' \code{x} 
+#' 
+#' @seealso \code{\link{PMC.sampler}}, \code{\link{propose.theta}},
+#'   \code{\link{pick.particle}}
+#' @export
+var.wt<- function(x, w){
+  # weighted variance function applied colwise
+  wvar<- function(z, w) {
+    n<- length(z)
+    centre<- sum(z * w)
+    xsqr<- (z - centre)^2
+    return(sum(w * xsqr) * (n/(n-1)))
+  }
+  apply(x, 2, function(x) wvar(x, w=w))
 }
 #--------------------------------------------
 #' Check for prior support

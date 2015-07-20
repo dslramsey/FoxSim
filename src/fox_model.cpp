@@ -116,8 +116,8 @@ List advancepop(NumericMatrix x, NumericMatrix roads,
   for(int k = 0; k < nb; k++) {
     if(!IntegerMatrix::is_na(baits(k,0))) {
     // subtract 1 from row and column references to conform to C++ 0 indexing
-    if((x(baits(k,0)-1,baits(k,1)-1) == occupied) && (pbait >= R::runif(0,1))) {
-      x(baits(k,0)-1,baits(k,1)-1) = suitable; // kill fox & revert to suitable
+    if((x(baits(k,0) - 1,baits(k,1) - 1) == occupied) && (pbait >= R::runif(0,1))) {
+      x(baits(k,0) - 1,baits(k,1) - 1) = suitable; // kill fox & revert to suitable
       }
     }
   }
