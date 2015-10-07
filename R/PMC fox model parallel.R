@@ -31,16 +31,19 @@
 #' @export
 #' 
 PMC.sampler<- function(N, x0, SeqTol, priors, Data, kern = c("multi","uni"), parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
-  
+  seed<- floor(runif(1, 1, 10000))
   if(parallel & !is.null(ncores)) {
     library(parallel)
     cl<- makePSOCKcluster(ncores,outfile=logfile)
+    on.exit(stopCluster(cl))
+    clusterSetRNGStream(cl, seed)
     clusterEvalQ(cl, {
       library(Rcpp)
       library(RcppArmadillo)
       library(FoxSim)
     })
   }
+  
   kern<- match.arg(kern, c("multi","uni"))
   start = Sys.time()
   cTol<- SeqTol$ctol
@@ -115,7 +118,7 @@ PMC.sampler<- function(N, x0, SeqTol, priors, Data, kern = c("multi","uni"), par
       rm(xx,poploc,xr.sim,xs.sim,xspot.sim,xscats.sim) 
     }
   }
-if(parallel) stopCluster(cl)                   
+          
 post
 
 }
@@ -144,15 +147,19 @@ post
 #' 
 PMC.update<- function(post, N, x0, SeqTol, priors, Data, kern = c("multi","uni"), parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
   post.list<- list()    
+  seed<- floor(runif(1, 1, 10000))
   if(parallel & !is.null(ncores)) {
     library(parallel)
     cl<- makePSOCKcluster(ncores,outfile=logfile)
+    on.exit(stopCluster(cl))
+    clusterSetRNGStream(cl, seed)
     clusterEvalQ(cl, {
       library(Rcpp)
       library(RcppArmadillo)
       library(FoxSim)
     })
   }
+  
   # Update a weighted sample for each tolerance updating weights and proposal at each iteration
   # proposals are multivariate normal
   kern<- match.arg(kern, c("multi","uni"))
