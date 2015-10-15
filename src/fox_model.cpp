@@ -142,7 +142,8 @@ List advancepop(NumericMatrix x, NumericMatrix roads,
 }
 //------------------------------------------------------------------------------
 // [[Rcpp::export]]
-List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, List baitlist, List parms) {
+List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, NumericMatrix dkern, 
+            List baitlist, List parms) {
   
   RNGScope scope ;  // initialise RNG   
   IntegerVector pintro = as<IntegerVector>(parms["pintro"]);
@@ -164,13 +165,10 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
   List roadloc(nyears);
   List huntloc(nyears);
   List poploc(nyears);
-  IntegerVector nkern = seq_len(Kern.size());
   IntegerVector iyear(nintro);
   IntegerVector relpoint(nintro);
   NumericMatrix relmat(nintro,2);
   
-  int kern_no = RcppArmadillo::sample(nkern, 1, FALSE)[0] - 1;
-  NumericMatrix dkern = as<NumericMatrix>(Kern[kern_no]);
   
   for(int i = 0; i < nr; i++) {
     for(int j = 0; j < nc; j++) {
@@ -216,166 +214,4 @@ List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, Lis
   
   return(List::create(roadloc,huntloc,poploc));
 }
-//===============================================================
-// old model now deprecated
-
-NumericVector neighbourhood_old(int n, int m, NumericVector x,  
-                int ndist, NumericVector wdist, int state) {
-  /* 
-    n = number of rows in grid
-    m = number of columns in grid
-    x = input grid matrix
-    y = output grid matrix
-    ndist = number of rows and columns in distance matrix
-    wdist = weights of distance matrix
-    state = value to check for
-  */
-  int d;
- 
-  NumericVector y(n*m); 
-  
-  d = floor(ndist / 2); 
-  for (int i = 0; i < n; i++) {
-    for (int j = 0; j < m; j++) {
-      if(x[i + n * j] == state) { // abort if not occupied
-          for (int ii = imax(-d, -i); ii <= imin(n - i, d); ii++) {
-            for (int jj = imax(-d, -j); jj <= imin(m - j, d); jj++) {
-              if(isInside(n,m,i+ii,j+jj)) {
-                y[(i + ii) + n * (j + jj)] +=  wdist[ii + d + ndist * (jj + d)];
-              }
-            }
-          }
-      }
-    }
-  }
-  return(y);
-}
-
-//----------------------------------------------------------------
-LogicalVector matchspatial_old(int n, int m, NumericMatrix locs,
-        NumericVector x, int ncells, int state) {
-  /*
-    rn is vector of row number fo actual locations
-    cn is vector of col number fo actual locations
-    x is vector of simulated locations
-    ncells is the number of cells (distance) used to match location
-    state is the value to check for
-    return vector z contains locations in x within ncells of 
-  */
-  
-  LogicalVector z(n*m); 
-  int nlocs = locs.nrow();
-    for(int k = 0; k < nlocs; k++) {
-      for(int ii = imax(-ncells,-locs(k,0)); ii <= imin(n-locs(k,0),ncells); ii++) {
-          for(int jj= imax(-ncells,-locs(k,1)); jj <= imin(m-locs(k,1),ncells); jj++) {
-            if(x[(locs(k,0) + ii) + n * (locs(k,1) + jj)] == state) 
-               z[(locs(k,0) + ii) + n * (locs(k,1) + jj)] = true;
-          }
-        }
-      }
-  return(z);
-}
-//===============================================================
-List advancepop_old(int nr, int nc, int ndist, NumericVector x, NumericVector roads,
-              NumericVector xhunt, NumericVector offspkern, List parms) {
-                
-  double psurv = as<double>(parms["psurv"]);
-  double Ryear = as<double>(parms["Ryear"]);
-  double proad = as<double>(parms["proad"]);
-  double pshot = as<double>(parms["pshot"]);
-  
-  int occupied = 2;
-  int suitable = 1;
-  int unsuitable = 0;
-  int ocean = -1;
-  int n = x.size();
-  
-  NumericVector u = runif(n, 0, 1);
-  NumericVector ugen = runif(n, 0, 1); 
-  NumericVector uroad = runif(n, 0, 1);
-  NumericVector ushot = runif(n, 0, 1);
-  NumericVector xdeath(n);
-  NumericVector xsurv(n);
-  NumericVector xgen(n);
-  NumericVector xsuit(n);
-  NumericVector xsea(n);
-  NumericVector roadcells(n);
-  NumericVector huntcells(n);
-
-  NumericVector nb = neighbourhood_old(nr, nc, x, ndist, offspkern, occupied); 
-  NumericVector genprob = 1 - exp(-Ryear * nb);
-  
-  for(int i = 0; i < n; i++) {    
-    if((x[i] == occupied) && (u[i] > psurv)) xdeath[i]=suitable; else xdeath[i]=0;
-    if((x[i] == occupied) && (xdeath[i] == 0)) xsurv[i]=occupied; else xsurv[i]=0; 
-    if((x[i] == suitable) && (genprob[i] >= ugen[i])) xgen[i]=occupied; else xgen[i]=0;
-    if((x[i] == suitable) && (xgen[i] == 0)) xsuit[i] = suitable; else xsuit[i]=unsuitable;
-    if(x[i] == ocean) xsea[i]=ocean; else xsea[i]=0;
-    x[i] = xgen[i] + xdeath[i] + xsurv[i] + xsuit[i] + xsea[i];
-    // simulate roadkills, hunting kills and scats scats
-    if((x[i] == occupied) && (roads[i] == 1) && (uroad[i] < proad)) 
-          roadcells[i] = 1; else roadcells[i]=0;
-    if((x[i] == occupied) && (xhunt[i] == 1) && (ushot[i] < pshot)) 
-          huntcells[i] = 1; else huntcells[i]=0;
-  }
-  return(List::create(x, roadcells, huntcells));
-}
-//------------------------------------------------------------------------------
-List foxsim_old(int nr, int nc, int ksize, NumericVector x, NumericVector roads, 
-          List incpoints, List Kern, List parms) {
-  
-  RNGScope scope ;  // initialise RNG         
-  
-  IntegerVector pintro = as<IntegerVector>(parms["pintro"]);
-  IntegerVector yintro = as<IntegerVector>(parms["yintro"]);
-  int startyear = as<int>(parms["syear"]);
-  int endyear = as<int>(parms["eyear"]);  
-  int iyear[2];
-  int relpoint[2];
-  int occupied = 2;
-  int suitable = 1;
-  int nyears = endyear - startyear + 1;
-  int n = x.size(); 
-  double phunt = rbeta(1, 100, 100)[0];
-  NumericVector xone(clone(x));
-  NumericVector uhunt = runif(n, 0, 1);
-  NumericVector xhunt(n);
-  IntegerVector years = seq_len(nyears);
-  List xpop(3);
-  List roadloc(nyears);
-  List huntloc(nyears);
-  List poploc(nyears);
-  IntegerVector nkern = seq_len(Kern.size());
-  int iptsize = incpoints.size();
-  
-  int kern_no = RcppArmadillo::sample(nkern, 1, FALSE)[0] - 1;
-  NumericVector dkern = as<NumericVector>(Kern[kern_no]);
-  
-  for(int i = 0; i < n; i++) {
-    if((xone[i] == suitable) & (uhunt[i] > phunt)) xhunt[i]=1; else xhunt[i]=0;  
-  }
-  
-  for(int i = 0; i < iptsize; i++) { 
-     List iplist = as<List>(incpoints[i]);   
-     IntegerVector ip = as<IntegerVector>(iplist[pintro[i]]);
-     relpoint[i] = RcppArmadillo::sample(ip, 1, FALSE)[0];   
-  }
-    
-  iyear[0] = nyears - (endyear-yintro[0]) - 1;
-  iyear[1] = nyears - (endyear-yintro[1]) - 1;
-  
-  for(int j = 0; j < nyears; j++) {
-    if(j == iyear[0]) xone[relpoint[0]] = occupied;
-    if(j == iyear[1]) xone[relpoint[1]] = occupied;
-    xpop = advancepop_old(nr,nc,ksize,xone,roads,xhunt,dkern,parms);
-    xone = xpop[0];
-    NumericVector pop(clone(xone));  //make deep copy
-    poploc[j]  = pop;  
-    roadloc[j] = xpop[1];
-    huntloc[j] = xpop[2]; 
-  }
-  
-  return(List::create(roadloc,huntloc,poploc));
-}
-
 //===============================================================

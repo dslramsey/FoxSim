@@ -31,19 +31,20 @@
 #' @export
 #' 
 PMC.sampler<- function(N, x0, SeqTol, priors, Data, kern = c("multi","uni"), parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
-  seed<- floor(runif(1, 1, 10000))
+  seed<- floor(runif(1, 1, 1e6))
   if(parallel & !is.null(ncores)) {
     library(parallel)
     cl<- makePSOCKcluster(ncores,outfile=logfile)
     on.exit(stopCluster(cl))
     clusterSetRNGStream(cl, seed)
-    clusterEvalQ(cl, {
-      library(Rcpp)
-      library(RcppArmadillo)
-      library(FoxSim)
-    })
+     clusterEvalQ(cl, {
+       library(Rcpp)
+       library(RcppArmadillo)
+       library(FoxSim)
+   })
+    clusterExport(cl,c("x0","priors","Data"), envir=environment())
   }
-  
+    
   kern<- match.arg(kern, c("multi","uni"))
   start = Sys.time()
   cTol<- SeqTol$ctol
@@ -147,7 +148,7 @@ post
 #' 
 PMC.update<- function(post, N, x0, SeqTol, priors, Data, kern = c("multi","uni"), parallel=FALSE, ncores=NULL, logfile=NULL, save.post=NULL){
   post.list<- list()    
-  seed<- floor(runif(1, 1, 10000))
+  seed<- floor(runif(1, 1, 1e6))
   if(parallel & !is.null(ncores)) {
     library(parallel)
     cl<- makePSOCKcluster(ncores,outfile=logfile)
@@ -158,6 +159,7 @@ PMC.update<- function(post, N, x0, SeqTol, priors, Data, kern = c("multi","uni")
       library(RcppArmadillo)
       library(FoxSim)
     })
+    clusterExport(cl,c("x0","priors","Data"), envir=environment())
   }
   
   # Update a weighted sample for each tolerance updating weights and proposal at each iteration
@@ -385,15 +387,17 @@ ModelABC<- function(parm, Data) {
   yintro<- round(parm[(nintro+1):iend] + syear)
   nyears<- length(syear:eyear)
   if(sum(Data$nfpyrs) > 0) {
-    pFP.parms<- parm[(iend+8):(iend+8+sum(Data$nfpyrs)-1)]
+    pFP.parms<- parm[(iend+9):(iend+9+sum(Data$nfpyrs)-1)]
     pFP<- as.list(rep(0, nyears))
     pFP[Data$nfpyrs]<- pFP.parms
   } else pFP<- as.list(rep(0, nyears))
-  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[iend+1],Ryear=parm[iend+2],proad=parm[iend+3],pshot=parm[iend+4],pbait=parm[iend+7],nintro=nintro)
+  kern_sigma<- parm[iend+1]
+  Disp.Kern<- kernel2D(eps=Data$eps, kfun="uniform", sigma=kern_sigma, max.disp=Data$max.disp) #disp kernel
+  Parms<- list(pintro=pintro,yintro=yintro,syear=syear,eyear=eyear,psurv=parm[iend+2],Ryear=parm[iend+3],proad=parm[iend+4],pshot=parm[iend+5],pbait=parm[iend+8],nintro=nintro)
   # Fox cellular automata C++ function from library(FoxSim) 
-  mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Data$kern.list, Data$baitlocs, Parms)
-  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[iend+5], 0.2, 3))
-  xscat<- mapply(scat.survey, mod[[3]], Data$scatsearch, pFP, MoreArgs=list(drate=parm[iend+6],parms=Data$scat.pars),SIMPLIFY=FALSE)
+  mod<- foxsim(Data$habitat.mat, Data$road.mat, Data$ipoints, Disp.Kern, Data$baitlocs, Parms)
+  xspot<- sapply(mod[[3]], function(x) spotlight.survey(x, Data$spotlocs, parm[iend+6], 0.2, Data$eps))
+  xscat<- mapply(scat.survey, mod[[3]], Data$scatsearch, pFP, MoreArgs=list(drate=parm[iend+7],parms=Data$scat.pars),SIMPLIFY=FALSE)
   list(years=syear:eyear,xr=mod[[1]],xs=mod[[2]],pop=mod[[3]],xspot=xspot,xscat=xscat)
 }
 #-------------------------------------------------------------------------
