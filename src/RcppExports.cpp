@@ -34,18 +34,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // foxsim
-List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, List Kern, List baitlist, List parms);
-RcppExport SEXP FoxSim_foxsim(SEXP xSEXP, SEXP roadsSEXP, SEXP incpointsSEXP, SEXP KernSEXP, SEXP baitlistSEXP, SEXP parmsSEXP) {
+List foxsim(NumericMatrix x, NumericMatrix roads, List incpoints, NumericMatrix dkern, List baitlist, List parms);
+RcppExport SEXP FoxSim_foxsim(SEXP xSEXP, SEXP roadsSEXP, SEXP incpointsSEXP, SEXP dkernSEXP, SEXP baitlistSEXP, SEXP parmsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< NumericMatrix >::type x(xSEXP);
     Rcpp::traits::input_parameter< NumericMatrix >::type roads(roadsSEXP);
     Rcpp::traits::input_parameter< List >::type incpoints(incpointsSEXP);
-    Rcpp::traits::input_parameter< List >::type Kern(KernSEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type dkern(dkernSEXP);
     Rcpp::traits::input_parameter< List >::type baitlist(baitlistSEXP);
     Rcpp::traits::input_parameter< List >::type parms(parmsSEXP);
-    __result = Rcpp::wrap(foxsim(x, roads, incpoints, Kern, baitlist, parms));
+    __result = Rcpp::wrap(foxsim(x, roads, incpoints, dkern, baitlist, parms));
     return __result;
 END_RCPP
 }

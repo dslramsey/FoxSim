@@ -9,7 +9,7 @@ matchspatial <- function(locs, x, ncells, state) {
     .Call('FoxSim_matchspatial', PACKAGE = 'FoxSim', locs, x, ncells, state)
 }
 
-foxsim <- function(x, roads, incpoints, Kern, baitlist, parms) {
-    .Call('FoxSim_foxsim', PACKAGE = 'FoxSim', x, roads, incpoints, Kern, baitlist, parms)
+foxsim <- function(x, roads, incpoints, dkern, baitlist, parms) {
+    .Call('FoxSim_foxsim', PACKAGE = 'FoxSim', x, roads, incpoints, dkern, baitlist, parms)
 }
 
